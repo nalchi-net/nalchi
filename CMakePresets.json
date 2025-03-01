@@ -1,0 +1,38 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "nalchi-gns",
+            "generator": "Ninja",
+            "binaryDir": "build-gns",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+            }
+        },
+        {
+            "name": "nalchi-msvc-gns",
+            "inherits": "nalchi-gns",
+            "binaryDir": "build-msvc-gns",
+            "cacheVariables": {
+                "CMAKE_C_COMPILER": "cl",
+                "CMAKE_CXX_COMPILER": "cl"
+            }
+        },
+        {
+            "name": "nalchi-steamworks",
+            "inherits": "nalchi-gns",
+            "binaryDir": "build-steamworks",
+            "cacheVariables": {
+                "USE_STEAMWORKS": true
+            }
+        },
+        {
+            "name": "nalchi-msvc-steamworks",
+            "inherits": "nalchi-msvc-gns",
+            "binaryDir": "build-msvc-steamworks",
+            "cacheVariables": {
+                "USE_STEAMWORKS": true
+            }
+        }
+    ]
+}
