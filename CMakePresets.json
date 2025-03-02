@@ -10,12 +10,28 @@
             }
         },
         {
+            "name": "nalchi-gns-shared",
+            "generator": "Ninja",
+            "binaryDir": "build-gns-shared",
+            "cacheVariables": {
+                "BUILD_SHARED_LIBS": true
+            }
+        },
+        {
             "name": "nalchi-msvc-gns",
             "inherits": "nalchi-gns",
             "binaryDir": "build-msvc-gns",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl",
                 "CMAKE_CXX_COMPILER": "cl"
+            }
+        },
+        {
+            "name": "nalchi-msvc-gns-shared",
+            "inherits": "nalchi-msvc-gns",
+            "binaryDir": "build-msvc-gns-shared",
+            "cacheVariables": {
+                "BUILD_SHARED_LIBS": true
             }
         },
         {
@@ -27,11 +43,27 @@
             }
         },
         {
+            "name": "nalchi-steamworks-shared",
+            "inherits": "nalchi-steamworks",
+            "binaryDir": "build-steamworks-shared",
+            "cacheVariables": {
+                "BUILD_SHARED_LIBS": true
+            }
+        },
+        {
             "name": "nalchi-msvc-steamworks",
             "inherits": "nalchi-msvc-gns",
             "binaryDir": "build-msvc-steamworks",
             "cacheVariables": {
                 "USE_STEAMWORKS": true
+            }
+        },
+        {
+            "name": "nalchi-msvc-steamworks-shared",
+            "inherits": "nalchi-msvc-steamworks",
+            "binaryDir": "build-msvc-steamworks-shared",
+            "cacheVariables": {
+                "BUILD_SHARED_LIBS": true
             }
         }
     ]
