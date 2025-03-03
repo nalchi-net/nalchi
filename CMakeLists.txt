@@ -57,13 +57,18 @@ target_sources(nalchi
     FILES
         include/nalchi/export.h
         include/nalchi/server.hpp
+        include/nalchi/payload.h
+        include/nalchi/bit_stream.hpp
 )
 
 # nalchi sources
 target_sources(nalchi PRIVATE
     src/server.cpp
+    src/payload.cpp
+    src/bit_stream.cpp
 )
 
+# Steamworks SDK or stand-alone GameNetworkingSockets?
 if(USE_STEAMWORKS)
     set(STEAMWORKS_REDIST_BIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/redistributable_bin)
     set(STEAMWORKS_PUBLIC_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/public/steam/lib)
