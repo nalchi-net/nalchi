@@ -25,17 +25,28 @@ endif()
 # nalchi target
 add_library(nalchi)
 target_include_directories(nalchi
-PUBLIC
+PRIVATE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
-PRIVATE
     src
+)
+target_include_directories(nalchi SYSTEM
+INTERFACE
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(nalchi PRIVATE NALCHI_BUILD_EXPORT)
 else()
     target_compile_definitions(nalchi PUBLIC NALCHI_BUILD_STATIC)
 endif()
+
+# Compiler warnings
+target_compile_options(nalchi PRIVATE
+    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+        -Wall -Wextra -Wpedantic>
+)
 
 # nalchi public headers
 target_sources(nalchi
