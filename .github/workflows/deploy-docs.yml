@@ -24,18 +24,18 @@ jobs:
           submodules: recursive
 
       - name: Doxygen Action
-        uses: mattnotmitt/doxygen-action@edge
+        uses: mattnotmitt/doxygen-action@v1.12
         with:
           doxyfile-path: "Doxyfile"
           working-directory: "doc"
 
       - name: Add .nojekyll
-        run: sudo touch ./build-doc/html/.nojekyll
+        run: sudo touch build-doc/html/.nojekyll
 
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: ./build-doc/html
+          path: build-doc/html
 
   deploy:
     environment:
@@ -46,4 +46,4 @@ jobs:
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v2
+        uses: actions/deploy-pages@v4
