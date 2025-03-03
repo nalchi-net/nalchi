@@ -3,15 +3,12 @@
     "configurePresets": [
         {
             "name": "nalchi-gns",
-            "generator": "Ninja",
-            "binaryDir": "build-gns",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
-            }
+            "generator": "Ninja Multi-Config",
+            "binaryDir": "build-gns"
         },
         {
             "name": "nalchi-gns-shared",
-            "generator": "Ninja",
+            "inherits": "nalchi-gns",
             "binaryDir": "build-gns-shared",
             "cacheVariables": {
                 "BUILD_SHARED_LIBS": true
