@@ -1,6 +1,8 @@
 #pragma once
 
-#include "nalchi/export.h"
+#include "nalchi/export.hpp"
+
+#include "nalchi/shared_payload.hpp"
 
 #include <algorithm>
 #include <bit>
@@ -37,8 +39,6 @@
         } \
     } while (false)
 
-struct nalchi_payload;
-
 namespace nalchi
 {
 
@@ -74,7 +74,7 @@ private:
 
     // These fields are required, because logical user buffer size might differ from `_words` size.
     //
-    // e.g. If user passed `nalchi_payload` whose size is 5 bytes,
+    // e.g. If user passed `shared_payload` whose size is 5 bytes,
     // the actual allocated buffer is 8 bytes, to avoid overrun writes.
     // But for the user's perspective, writing more than 5 bytes should be treated as an overflow.
     const std::int64_t _logical_total_bits;
@@ -89,9 +89,11 @@ public:
     /// @brief Deleted copy constructor.
     bit_stream_writer(const bit_stream_writer&) = delete;
 
-    /// @brief Constructs a `bit_stream_writer` instance with a `nalchi_payload` buffer.
+    /// @brief Constructs a `bit_stream_writer` instance with a `shared_payload` buffer.
     /// @param buffer Buffer to write bits to.
-    bit_stream_writer(nalchi_payload buffer);
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial write to the final word.
+    bit_stream_writer(shared_payload buffer, int logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_writer` instance with a `std::span<word_type>` buffer.
     /// @param buffer Buffer to write bits to.

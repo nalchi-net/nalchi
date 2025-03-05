@@ -55,16 +55,18 @@ target_sources(nalchi
     BASE_DIRS include
     TYPE HEADERS
     FILES
-        include/nalchi/export.h
+        include/nalchi/export.hpp
         include/nalchi/server.hpp
-        include/nalchi/payload.h
+        include/nalchi/shared_payload.hpp
+        include/nalchi/shared_payload_flat.hpp
         include/nalchi/bit_stream.hpp
 )
 
 # nalchi sources
 target_sources(nalchi PRIVATE
     src/server.cpp
-    src/payload.cpp
+    src/shared_payload.cpp
+    src/shared_payload_flat.cpp
     src/bit_stream.cpp
 )
 

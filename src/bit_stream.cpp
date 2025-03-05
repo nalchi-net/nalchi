@@ -1,26 +1,27 @@
 #include "nalchi/bit_stream.hpp"
 
-#include "nalchi/payload.h"
+#include "nalchi/shared_payload.hpp"
 
 #include "byteswap.hpp"
 #include "math.hpp"
 
 #include <algorithm>
-#include <bit>
+#include <cstddef>
 
 namespace nalchi
 {
 
-bit_stream_writer::bit_stream_writer(nalchi_payload buffer)
-    : bit_stream_writer(std::span<word_type>(reinterpret_cast<word_type*>(buffer.ptr),
-                                             ceil_to_multiple_of<sizeof(word_type)>(buffer.size) / sizeof(word_type)),
-                        buffer.size)
+bit_stream_writer::bit_stream_writer(shared_payload buffer, int logical_bytes_length)
+    : bit_stream_writer(
+          std::span<word_type>(reinterpret_cast<word_type*>(buffer.ptr), buffer.get_payload_size() / sizeof(word_type)),
+          logical_bytes_length)
 {
 }
 
 bit_stream_writer::bit_stream_writer(std::span<word_type> buffer, int logical_bytes_length)
     : _words(buffer), _logical_total_bits(8 * logical_bytes_length),
-      _init_fail(!buffer.data() || buffer.size() == 0 || std::size_t(logical_bytes_length) > buffer.size_bytes()), _fail(_init_fail)
+      _init_fail(!buffer.data() || buffer.size() == 0 || std::size_t(logical_bytes_length) > buffer.size_bytes()),
+      _fail(_init_fail)
 {
     reset();
 }
