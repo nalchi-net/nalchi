@@ -37,8 +37,10 @@ NALCHI_FLAT_API nalchi_payload nalchi_allocate_payload(uint32_t size)
         const std::size_t alloc_size =
             sizeof(ref_count_t) + nalchi::ceil_to_multiple_of<sizeof(nalchi::bit_stream_writer::word_type)>(size);
 
-        // Allocate the space!
-        void* raw_space = NALCHI_ALIGNED_ALLOC(ALLOC_ALIGNMENT, alloc_size);
+        // We actually don't need `std::aligned_alloc()`.
+        // `std::malloc()` is already sufficiently aligned.
+        static_assert(alignof(std::max_align_t) >= ALLOC_ALIGNMENT);
+        void* raw_space = std::malloc(alloc_size);
 
         if (raw_space)
         {
@@ -69,5 +71,5 @@ NALCHI_FLAT_API void nalchi_force_deallocate_payload(nalchi_payload payload)
     ref_count->~ref_count_t();
 
     // Free the space (ref count is the real alloc address)
-    NALCHI_ALIGNED_FREE(ref_count);
+    std::free(ref_count);
 }
