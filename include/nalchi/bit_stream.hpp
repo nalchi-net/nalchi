@@ -10,6 +10,8 @@
 #include <cstdint>
 #include <limits>
 #include <span>
+#include <string>
+#include <string_view>
 #include <type_traits>
 
 #define NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(ret_val) \
@@ -39,6 +41,17 @@
         } \
     } while (false)
 
+#define NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(prefix_bytes, str_len_bytes) \
+    do \
+    { \
+        if (_logical_used_bits + PREFIX_PREFIX_BITS + (8 * (prefix_bytes)) + (8 * (str_len_bytes)) > \
+            _logical_total_bits) \
+        { \
+            _fail = true; \
+            return *this; \
+        } \
+    } while (false)
+
 namespace nalchi
 {
 
@@ -57,6 +70,8 @@ class bit_stream_writer final
 public:
     using scratch_type = std::uint64_t; ///< Internal scratch type to store the temporary scratch data.
     using word_type = std::uint32_t;    ///< Internal word type used to write to your buffer.
+
+    using size_type = std::uint64_t;
 
     static_assert(std::is_unsigned_v<scratch_type>);
     static_assert(std::is_unsigned_v<word_type>);
@@ -77,8 +92,8 @@ private:
     // e.g. If user passed `shared_payload` whose size is 5 bytes,
     // the actual allocated buffer is 8 bytes, to avoid overrun writes.
     // But for the user's perspective, writing more than 5 bytes should be treated as an overflow.
-    std::int64_t _logical_total_bits;
-    std::int64_t _logical_used_bits;
+    size_type _logical_total_bits;
+    size_type _logical_used_bits;
 
     bool _init_fail;
     bool _fail;
@@ -96,27 +111,27 @@ public:
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    bit_stream_writer(shared_payload buffer, int logical_bytes_length);
+    bit_stream_writer(shared_payload buffer, size_type logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_writer` instance with a `std::span<word_type>` buffer.
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    bit_stream_writer(std::span<word_type> buffer, int logical_bytes_length);
+    bit_stream_writer(std::span<word_type> buffer, size_type logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_writer` instance with a word range.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param end Pointer to the end of a buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    bit_stream_writer(word_type* begin, word_type* end, int logical_bytes_length);
+    bit_stream_writer(word_type* begin, word_type* end, size_type logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_writer` instance with a word begin pointer and the word length.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param words_length Number of words in the buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    bit_stream_writer(word_type* begin, int words_length, int logical_bytes_length);
+    bit_stream_writer(word_type* begin, size_type words_length, size_type logical_bytes_length);
 
     /// @brief Destroys the `bit_stream_writer` instance.
     ~bit_stream_writer();
@@ -201,7 +216,7 @@ public:
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    void reset_with(shared_payload buffer, int logical_bytes_length);
+    void reset_with(shared_payload buffer, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a `std::span<word_type>` buffer.
     /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
@@ -209,7 +224,7 @@ public:
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    void reset_with(std::span<word_type> buffer, int logical_bytes_length);
+    void reset_with(std::span<word_type> buffer, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a word range.
     /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
@@ -218,7 +233,7 @@ public:
     /// @param end Pointer to the end of a buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    void reset_with(word_type* begin, word_type* end, int logical_bytes_length);
+    void reset_with(word_type* begin, word_type* end, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a word begin pointer and the word length.
     /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
@@ -227,7 +242,7 @@ public:
     /// @param words_length Number of words in the buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    void reset_with(word_type* begin, int words_length, int logical_bytes_length);
+    void reset_with(word_type* begin, size_type words_length, size_type logical_bytes_length);
 
     /// @brief Flushes the last remaining bytes on the internal scratch buffer to your buffer.
     /// @note This function must be only called when you're done writing. \n
@@ -236,7 +251,7 @@ public:
     auto flush_final() -> bit_stream_writer&;
 
 public:
-    /// @brief Writes a numeric value to the bit stream.
+    /// @brief Writes a integral value to the bit stream.
     /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
     /// @param data Data to write.
     /// @param min Minimum value allowed for @p data.
@@ -247,9 +262,127 @@ public:
     auto write(SInt data, SInt min = std::numeric_limits<SInt>::min(), SInt max = std::numeric_limits<SInt>::max())
         -> bit_stream_writer&
     {
+        return do_write<true>(data, min, max);
+    }
+
+    /// @brief Writes a integral value to the bit stream.
+    /// @tparam BInt Big integer type that exceeds the size of `word_type`.
+    /// @param data Data to write.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <std::integral BInt>
+        requires(sizeof(BInt) > sizeof(word_type))
+    auto write(BInt data, BInt min = std::numeric_limits<BInt>::min(), BInt max = std::numeric_limits<BInt>::max())
+        -> bit_stream_writer&
+    {
+        return do_write<true>(data, min, max);
+    }
+
+    /// @brief Writes a float value to the bit stream.
+    /// @param data Data to write.
+    /// @return The stream itself.
+    auto write(float data) -> bit_stream_writer&;
+
+    /// @brief Writes a double value to the bit stream.
+    /// @param data Data to write.
+    /// @return The stream itself.
+    auto write(double data) -> bit_stream_writer&;
+
+    /// @brief Writes a string view to the bit stream.
+    /// @tparam CharT Underlying character type of `std::basic_string_view`.
+    /// @tparam CharTraits Char traits for `CharT`.
+    /// @param str String to write.
+    /// @return The stream itself.
+    template <typename CharT, typename CharTraits>
+    auto write(std::basic_string_view<CharT, CharTraits> str) -> bit_stream_writer&
+    {
         NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
         NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
-        NALCHI_BIT_STREAM_WRITER_FAIL_IF_DATA_OUT_OF_RANGE(*this);
+
+        using UInt = std::make_unsigned_t<CharT>;
+
+        // Get the length of the string.
+        const auto len = str.length();
+
+        // Write a "prefix of length prefix" + length prefix.
+        // 0: u8 / 1: u16 / 2: u32 / 3: u64
+        constexpr auto PREFIX_PREFIX_BITS = 2;
+        constexpr auto MIN_PREFIX_PREFIX = 0u;
+        constexpr auto MAX_PREFIX_PREFIX = 3u;
+        if (len <= std::numeric_limits<std::uint8_t>::max())
+        {
+            NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(sizeof(std::uint8_t), len * sizeof(CharT));
+            do_write<false>(0u, MIN_PREFIX_PREFIX, MAX_PREFIX_PREFIX); // prefix of length prefix
+            do_write<false>(static_cast<std::uint8_t>(len));           // length prefix
+        }
+        else if (len <= std::numeric_limits<std::uint16_t>::max())
+        {
+            NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(sizeof(std::uint16_t), len * sizeof(CharT));
+            do_write<false>(1u, MIN_PREFIX_PREFIX, MAX_PREFIX_PREFIX); // prefix of length prefix
+            do_write<false>(static_cast<std::uint16_t>(len));          // length prefix
+        }
+        else if (len <= std::numeric_limits<std::uint32_t>::max())
+        {
+            NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(sizeof(std::uint32_t), len * sizeof(CharT));
+            do_write<false>(2u, MIN_PREFIX_PREFIX, MAX_PREFIX_PREFIX); // prefix of length prefix
+            do_write<false>(static_cast<std::uint32_t>(len));          // length prefix
+        }
+        else // len <= std::numeric_limits<std::uint64_t>::max()
+        {
+            NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(sizeof(std::uint64_t), len * sizeof(CharT));
+            do_write<false>(3u, MIN_PREFIX_PREFIX, MAX_PREFIX_PREFIX); // prefix of length prefix
+            do_write<false>(static_cast<std::uint64_t>(len));          // length prefix
+        }
+
+        // Just write every characters as an `UInt`.
+        for (const auto ch : str)
+            do_write<false>(static_cast<UInt>(ch));
+
+        return *this;
+    }
+
+    /// @brief Writes a string to the bit stream.
+    /// @tparam CharT Underlying character type of `std::basic_string`.
+    /// @tparam CharTraits Char traits for `CharT`.
+    /// @tparam Allocator Underlying allocator for `std::basic_string`.
+    /// @param str String to write.
+    /// @return The stream itself.
+    template <typename CharT, typename CharTraits, typename Allocator>
+    auto write(const std::basic_string<CharT, CharTraits, Allocator>& str) -> bit_stream_writer&
+    {
+        return write(std::basic_string_view<CharT, CharTraits>(str));
+    }
+
+    /// @brief Writes a null-terminated string to the bit stream.
+    /// @tparam CharT Character type of the null-terminated string.
+    /// @param str String to write.
+    /// @return The stream itself.
+    template <typename CharT>
+    auto write(const CharT* str) -> bit_stream_writer&
+    {
+        return write(std::basic_string_view<CharT>(str));
+    }
+
+private:
+    /// @brief Actually writes a numeric value to the bit stream.
+    /// @tparam Checked Whether the checks are performed or not.
+    /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
+    /// @param data Data to write.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <bool Checked, std::integral SInt>
+        requires(sizeof(SInt) <= sizeof(word_type))
+    auto do_write(SInt data, SInt min = std::numeric_limits<SInt>::min(), SInt max = std::numeric_limits<SInt>::max())
+        -> bit_stream_writer&
+    {
+        if constexpr (Checked)
+        {
+            NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
+            NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
+            NALCHI_BIT_STREAM_WRITER_FAIL_IF_DATA_OUT_OF_RANGE(*this);
+        }
 
         using UInt = std::make_unsigned_t<SInt>;
 
@@ -257,11 +390,14 @@ public:
         const scratch_type value = ((UInt)data) - ((UInt)min);
         const int bits = std::bit_width(((UInt)max) - ((UInt)min));
 
-        // Fail if user buffer overflows.
-        if (_logical_used_bits + bits > _logical_total_bits)
+        if constexpr (Checked)
         {
-            _fail = true;
-            return *this;
+            // Fail if user buffer overflows.
+            if (_logical_used_bits + bits > _logical_total_bits)
+            {
+                _fail = true;
+                return *this;
+            }
         }
 
         // Write `value` to `_scratch`, and flush if scratch overflow.
@@ -275,20 +411,24 @@ public:
         return *this;
     }
 
-    /// @brief Writes a numeric value to the bit stream.
+    /// @brief Actually writes a numeric value to the bit stream.
+    /// @tparam Checked Whether the checks are performed or not.
     /// @tparam BInt Big integer type that exceeds the size of `word_type`.
     /// @param data Data to write.
     /// @param min Minimum value allowed for @p data.
     /// @param max Maximum value allowed for @p data.
     /// @return The stream itself.
-    template <std::integral BInt>
+    template <bool Checked, std::integral BInt>
         requires(sizeof(BInt) > sizeof(word_type))
-    auto write(BInt data, BInt min = std::numeric_limits<BInt>::min(), BInt max = std::numeric_limits<BInt>::max())
+    auto do_write(BInt data, BInt min = std::numeric_limits<BInt>::min(), BInt max = std::numeric_limits<BInt>::max())
         -> bit_stream_writer&
     {
-        NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
-        NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
-        NALCHI_BIT_STREAM_WRITER_FAIL_IF_DATA_OUT_OF_RANGE(*this);
+        if constexpr (Checked)
+        {
+            NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
+            NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
+            NALCHI_BIT_STREAM_WRITER_FAIL_IF_DATA_OUT_OF_RANGE(*this);
+        }
 
         // Current logic assumes the only size here is 64 bits, but hey who wouldn't?
         static_assert(sizeof(BInt) == 2 * sizeof(word_type));
@@ -299,11 +439,14 @@ public:
         const scratch_type value = ((UInt)data) - ((UInt)min);
         const int bits = std::bit_width(((UInt)max) - ((UInt)min));
 
-        // Fail if user buffer overflows.
-        if (_logical_used_bits + bits > _logical_total_bits)
+        if constexpr (Checked)
         {
-            _fail = true;
-            return *this;
+            // Fail if user buffer overflows.
+            if (_logical_used_bits + bits > _logical_total_bits)
+            {
+                _fail = true;
+                return *this;
+            }
         }
 
         // Split lower half of `value`
@@ -333,16 +476,6 @@ public:
         return *this;
     }
 
-    /// @brief Writes a float value to the bit stream.
-    /// @param data Data to write.
-    /// @return The stream itself.
-    auto write(float data) -> bit_stream_writer&;
-
-    /// @brief Writes a double value to the bit stream.
-    /// @param data Data to write.
-    /// @return The stream itself.
-    auto write(double data) -> bit_stream_writer&;
-
 private:
     void flush_if_scratch_overflow();
 
@@ -352,7 +485,7 @@ private:
     /// write some undesired additional `0` bits in the middle of your buffer. \n
     /// To avoid that, you should only call this when you're done writing everything.
     /// @return The stream itself.
-    void flush_word_unchecked();
+    void do_flush_word_unchecked();
 };
 
 } // namespace nalchi
