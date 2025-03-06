@@ -1,6 +1,6 @@
 # nalchi
 
-nalchi is a lightweight wrapper around [ValveSoftware/GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets).
+[nalchi](https://github.com/nalchi-net/nalchi) is a lightweight wrapper around [ValveSoftware/GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets).
 
 It supports either building with the stand-alone version of GameNetworkingSockets or Steamworks SDK version of it.
 
@@ -58,7 +58,7 @@ If you need to integrate with Steamworks SDK to make use of other Steamworks API
 
 # License
 
-nalchi is licensed under the [MIT License](LICENSE).
+nalchi is licensed under the [MIT License](https://github.com/nalchi-net/nalchi/blob/main/LICENSE).
 
 This project depends on either the stand-alone GameNetworkingSockets or the Steamworks SDK.
 * [Stand-alone GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets) is licensed under the [BSD 3-Clause "New" or "Revised" License](https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/LICENSE).
