@@ -67,7 +67,7 @@ public:
 
 private:
     scratch_type _scratch;
-    const std::span<word_type> _words;
+    std::span<word_type> _words;
 
     int _scratch_index;
     int _words_index;
@@ -77,10 +77,10 @@ private:
     // e.g. If user passed `shared_payload` whose size is 5 bytes,
     // the actual allocated buffer is 8 bytes, to avoid overrun writes.
     // But for the user's perspective, writing more than 5 bytes should be treated as an overflow.
-    const std::int64_t _logical_total_bits;
+    std::int64_t _logical_total_bits;
     std::int64_t _logical_used_bits;
 
-    const bool _init_fail;
+    bool _init_fail;
     bool _fail;
 
     bool _final_flush;
@@ -88,6 +88,9 @@ private:
 public:
     /// @brief Deleted copy constructor.
     bit_stream_writer(const bit_stream_writer&) = delete;
+
+    /// @brief Deleted copy assignment operator.
+    auto operator=(const bit_stream_writer&) -> bit_stream_writer& = delete;
 
     /// @brief Constructs a `bit_stream_writer` instance with a `shared_payload` buffer.
     /// @param buffer Buffer to write bits to.
@@ -188,7 +191,43 @@ public:
 
 public:
     /// @brief Resets the stream so that it can write from the start.
+    /// @note This function resets internal states @b WITHOUT flushing,
+    /// so if you need flushing, you should call `flush_final()` beforehand.
     void reset();
+
+    /// @brief Resets the stream with a `shared_payload` buffer.
+    /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
+    /// so if you need flushing, you should call `flush_final()` beforehand.
+    /// @param buffer Buffer to write bits to.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial write to the final word.
+    void reset_with(shared_payload buffer, int logical_bytes_length);
+
+    /// @brief Resets the stream with a `std::span<word_type>` buffer.
+    /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
+    /// so if you need flushing, you should call `flush_final()` beforehand.
+    /// @param buffer Buffer to write bits to.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial write to the final word.
+    void reset_with(std::span<word_type> buffer, int logical_bytes_length);
+
+    /// @brief Resets the stream with a word range.
+    /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
+    /// so if you need flushing, you should call `flush_final()` beforehand.
+    /// @param begin Pointer to the beginning of a buffer.
+    /// @param end Pointer to the end of a buffer.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial write to the final word.
+    void reset_with(word_type* begin, word_type* end, int logical_bytes_length);
+
+    /// @brief Resets the stream with a word begin pointer and the word length.
+    /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
+    /// so if you need flushing, you should call `flush_final()` beforehand.
+    /// @param begin Pointer to the beginning of a buffer.
+    /// @param words_length Number of words in the buffer.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial write to the final word.
+    void reset_with(word_type* begin, int words_length, int logical_bytes_length);
 
     /// @brief Flushes the last remaining bytes on the internal scratch buffer to your buffer.
     /// @note This function must be only called when you're done writing. \n
