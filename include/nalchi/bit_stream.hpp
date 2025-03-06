@@ -255,7 +255,7 @@ public:
 
         // Convert `data` to `value` to actually write.
         const scratch_type value = ((UInt)data) - ((UInt)min);
-        const int bits = std::bit_width(value);
+        const int bits = std::bit_width(((UInt)max) - ((UInt)min));
 
         // Fail if user buffer overflows.
         if (_logical_used_bits + bits > _logical_total_bits)
@@ -297,7 +297,7 @@ public:
 
         // Convert `data` to `value`.
         const scratch_type value = ((UInt)data) - ((UInt)min);
-        const int bits = std::bit_width(value);
+        const int bits = std::bit_width(((UInt)max) - ((UInt)min));
 
         // Fail if user buffer overflows.
         if (_logical_used_bits + bits > _logical_total_bits)
