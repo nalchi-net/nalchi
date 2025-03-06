@@ -11,6 +11,11 @@
 namespace nalchi
 {
 
+bit_stream_writer::bit_stream_writer()
+{
+    reset();
+}
+
 bit_stream_writer::bit_stream_writer(shared_payload buffer, size_type logical_bytes_length)
 {
     reset_with(buffer, logical_bytes_length);
@@ -31,17 +36,12 @@ bit_stream_writer::bit_stream_writer(word_type* begin, size_type words_length, s
     reset_with(begin, words_length, logical_bytes_length);
 }
 
-bit_stream_writer::~bit_stream_writer()
-{
-    flush_final();
-}
-
 auto bit_stream_writer::used_bytes() const -> size_type
 {
     return ceil_to_multiple_of<8>(used_bits()) / 8;
 }
 
-void bit_stream_writer::reset()
+void bit_stream_writer::restart()
 {
     _scratch = 0;
 
@@ -52,6 +52,15 @@ void bit_stream_writer::reset()
     _fail = _init_fail;
 
     _final_flushed = false;
+}
+
+void bit_stream_writer::reset()
+{
+    _words = decltype(_words)();
+    _logical_total_bits = 0;
+    _init_fail = true;
+
+    restart();
 }
 
 void bit_stream_writer::reset_with(shared_payload buffer, size_type logical_bytes_length)
@@ -66,9 +75,8 @@ void bit_stream_writer::reset_with(std::span<word_type> buffer, size_type logica
     _words = buffer;
     _logical_total_bits = 8 * logical_bytes_length;
     _init_fail = (!buffer.data() || buffer.size() == 0 || std::size_t(logical_bytes_length) > buffer.size_bytes());
-    _fail = _init_fail;
 
-    reset();
+    restart();
 }
 
 void bit_stream_writer::reset_with(word_type* begin, word_type* end, size_type logical_bytes_length)

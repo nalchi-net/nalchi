@@ -64,8 +64,8 @@ namespace nalchi
 ///
 /// @note `bit_stream_writer` uses an internal scratch buffer,
 /// so the final few bytes might not be flushed to your buffer yet when you're done writing. \n
-/// To flush them, you can call `flush_final()` directly,
-/// or destroy the `bit_stream_writer` instance.
+/// You @b MUST call `flush_final()` to flush the remaining bytes to your buffer. \n
+/// (Destroying the `bit_stream_writer` instance won't flush them, either.)
 class bit_stream_writer final
 {
 public:
@@ -108,6 +108,12 @@ public:
     /// @brief Deleted copy assignment operator.
     auto operator=(const bit_stream_writer&) -> bit_stream_writer& = delete;
 
+    /// @brief Constructs a `bit_stream_writer` instance without a buffer.
+    ///
+    /// This constructor can be useful if you want to set the buffer afterwards. \n
+    /// To set the buffer, call `reset_with()`.
+    bit_stream_writer();
+
     /// @brief Constructs a `bit_stream_writer` instance with a `shared_payload` buffer.
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
@@ -133,9 +139,6 @@ public:
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
     bit_stream_writer(word_type* begin, size_type words_length, size_type logical_bytes_length);
-
-    /// @brief Destroys the `bit_stream_writer` instance.
-    ~bit_stream_writer();
 
 public:
     /// @brief Check if writing to your buffer has been failed or not.
@@ -206,8 +209,13 @@ public:
     }
 
 public:
-    /// @brief Resets the stream so that it can write from the start.
+    /// @brief Restarts the stream so that it can write from the beginning again.
     /// @note This function resets internal states @b WITHOUT flushing,
+    /// so if you need flushing, you should call `flush_final()` beforehand.
+    void restart();
+
+    /// @brief Resets the stream so that it no longer holds your buffer anymore.
+    /// @note This function removes reference to your buffer @b WITHOUT flushing, \n
     /// so if you need flushing, you should call `flush_final()` beforehand.
     void reset();
 
