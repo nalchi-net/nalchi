@@ -388,7 +388,7 @@ private:
 
         // Convert `data` to `value` to actually write.
         const scratch_type value = ((UInt)data) - ((UInt)min);
-        const int bits = std::bit_width(((UInt)max) - ((UInt)min));
+        const int bits = std::bit_width(static_cast<UInt>(((UInt)max) - ((UInt)min)));
 
         if constexpr (Checked)
         {
@@ -437,7 +437,7 @@ private:
 
         // Convert `data` to `value`.
         const scratch_type value = ((UInt)data) - ((UInt)min);
-        const int bits = std::bit_width(((UInt)max) - ((UInt)min));
+        const int bits = std::bit_width(static_cast<UInt>(((UInt)max) - ((UInt)min)));
 
         if constexpr (Checked)
         {
