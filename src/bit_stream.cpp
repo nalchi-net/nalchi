@@ -36,7 +36,7 @@ bit_stream_writer::~bit_stream_writer()
     flush_final();
 }
 
-auto bit_stream_writer::used_bytes() const -> std::int64_t
+auto bit_stream_writer::used_bytes() const -> size_type
 {
     return ceil_to_multiple_of<8>(used_bits()) / 8;
 }

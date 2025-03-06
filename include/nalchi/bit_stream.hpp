@@ -168,39 +168,39 @@ public:
 public:
     /// @brief Gets the number of total bytes in the stream.
     /// @return Number of total bytes in the stream.
-    auto total_bytes() const -> std::int64_t
+    auto total_bytes() const -> size_type
     {
         return _logical_total_bits / 8;
     }
 
     /// @brief Gets the number of total bits in the stream.
     /// @return Number of total bits in the stream.
-    auto total_bits() const -> std::int64_t
+    auto total_bits() const -> size_type
     {
         return _logical_total_bits;
     }
 
     /// @brief Gets the number of used bytes in the stream.
     /// @return Number of used bytes in the stream.
-    auto used_bytes() const -> std::int64_t;
+    auto used_bytes() const -> size_type;
 
     /// @brief Gets the number of used bits in the stream.
     /// @return Number of used bits in the stream.
-    auto used_bits() const -> std::int64_t
+    auto used_bits() const -> size_type
     {
         return _logical_used_bits;
     }
 
     /// @brief Gets the number of unused bytes in the stream.
     /// @return Number of unused bytes in the stream.
-    auto unused_bytes() const -> std::int64_t
+    auto unused_bytes() const -> size_type
     {
         return total_bytes() - used_bytes();
     }
 
     /// @brief Gets the number of unused bits in the stream.
     /// @return Number of unused bits in the stream.
-    auto unused_bits() const -> std::int64_t
+    auto unused_bits() const -> size_type
     {
         return total_bits() - used_bits();
     }
