@@ -3,6 +3,7 @@
 #include "nalchi/export.hpp"
 
 #include "nalchi/shared_payload.hpp"
+#include "nalchi/type_traits.hpp"
 
 #include <algorithm>
 #include <bit>
@@ -251,7 +252,7 @@ public:
     auto flush_final() -> bit_stream_writer&;
 
 public:
-    /// @brief Writes a integral value to the bit stream.
+    /// @brief Writes an integral value to the bit stream.
     /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
     /// @param data Data to write.
     /// @param min Minimum value allowed for @p data.
@@ -265,7 +266,7 @@ public:
         return do_write<true>(data, min, max);
     }
 
-    /// @brief Writes a integral value to the bit stream.
+    /// @brief Writes an integral value to the bit stream.
     /// @tparam BInt Big integer type that exceeds the size of `word_type`.
     /// @param data Data to write.
     /// @param min Minimum value allowed for @p data.
@@ -365,7 +366,7 @@ public:
     }
 
 private:
-    /// @brief Actually writes a numeric value to the bit stream.
+    /// @brief Actually writes an integral value to the bit stream.
     /// @tparam Checked Whether the checks are performed or not.
     /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
     /// @param data Data to write.
@@ -384,7 +385,7 @@ private:
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_DATA_OUT_OF_RANGE(*this);
         }
 
-        using UInt = std::make_unsigned_t<SInt>;
+        using UInt = make_unsigned_allow_bool_t<SInt>;
 
         // Convert `data` to `value` to actually write.
         const scratch_type value = ((UInt)data) - ((UInt)min);
@@ -411,7 +412,7 @@ private:
         return *this;
     }
 
-    /// @brief Actually writes a numeric value to the bit stream.
+    /// @brief Actually writes an integral value to the bit stream.
     /// @tparam Checked Whether the checks are performed or not.
     /// @tparam BInt Big integer type that exceeds the size of `word_type`.
     /// @param data Data to write.
@@ -433,7 +434,7 @@ private:
         // Current logic assumes the only size here is 64 bits, but hey who wouldn't?
         static_assert(sizeof(BInt) == 2 * sizeof(word_type));
 
-        using UInt = std::make_unsigned_t<BInt>;
+        using UInt = make_unsigned_allow_bool_t<BInt>;
 
         // Convert `data` to `value`.
         const scratch_type value = ((UInt)data) - ((UInt)min);
