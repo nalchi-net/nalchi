@@ -51,7 +51,7 @@ void bit_stream_writer::reset()
     _logical_used_bits = 0;
     _fail = _init_fail;
 
-    _final_flush = false;
+    _final_flushed = false;
 }
 
 void bit_stream_writer::reset_with(shared_payload buffer, size_type logical_bytes_length)
@@ -85,11 +85,15 @@ auto bit_stream_writer::flush_final() -> bit_stream_writer&
 {
     NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
 
-    _final_flush = true;
+    // No-op if already flushed
+    if (_final_flushed)
+        return *this;
 
     // No-op if nothing to flush
     if (_scratch_index > 0)
         do_flush_word_unchecked();
+
+    _final_flushed = true;
 
     return *this;
 }

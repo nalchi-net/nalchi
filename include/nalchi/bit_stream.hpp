@@ -25,7 +25,7 @@
 #define NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(ret_val) \
     do \
     { \
-        if (_final_flush) \
+        if (_final_flushed) \
         { \
             _fail = true; \
             return ret_val; \
@@ -99,7 +99,7 @@ private:
     bool _init_fail;
     bool _fail;
 
-    bool _final_flush;
+    bool _final_flushed;
 
 public:
     /// @brief Deleted copy constructor.
@@ -250,6 +250,13 @@ public:
     /// Any attempt to write more data after calling this function will set the fail flag and write nothing.
     /// @return The stream itself.
     auto flush_final() -> bit_stream_writer&;
+
+    /// @brief Checks if `flush_final()` has been called or not.
+    /// @return Whether the `flush_final()` has been called or not.
+    bool flushed() const
+    {
+        return _final_flushed;
+    }
 
 public:
     /// @brief Writes an integral value to the bit stream.
