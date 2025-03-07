@@ -69,10 +69,10 @@ namespace nalchi
 class bit_stream_writer final
 {
 public:
+    using size_type = std::uint32_t; ///< Size type representing number of bits and bytes.
+
     using scratch_type = std::uint64_t; ///< Internal scratch type to store the temporary scratch data.
     using word_type = std::uint32_t;    ///< Internal word type used to write to your buffer.
-
-    using size_type = std::uint64_t;
 
     static_assert(std::is_unsigned_v<scratch_type>);
     static_assert(std::is_unsigned_v<word_type>);

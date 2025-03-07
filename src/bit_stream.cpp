@@ -5,11 +5,22 @@
 #include "byteswap.hpp"
 #include "math.hpp"
 
+#include <steam/steamnetworkingtypes.h>
+
 #include <algorithm>
 #include <cstddef>
 
 namespace nalchi
 {
+
+namespace
+{
+
+constexpr auto GNS_MAX_MSG_RECV_SIZE = 2 * k_cbMaxSteamNetworkingSocketsMessageSizeSend;
+static_assert(8 * GNS_MAX_MSG_RECV_SIZE <= std::numeric_limits<bit_stream_writer::size_type>::max(),
+              "`bit_stream_writer::size_type` too small to represent incoming GNS message in number of bits");
+
+} // namespace
 
 bit_stream_writer::bit_stream_writer()
 {
