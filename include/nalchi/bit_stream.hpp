@@ -32,10 +32,20 @@
         } \
     } while (false)
 
+#define NALCHI_BIT_STREAM_FAIL_IF_MIN_MAX_RANGE_INVALID(ret_val) \
+    do \
+    { \
+        if (min >= max) \
+        { \
+            _fail = true; \
+            return ret_val; \
+        } \
+    } while (false)
+
 #define NALCHI_BIT_STREAM_WRITER_FAIL_IF_DATA_OUT_OF_RANGE(ret_val) \
     do \
     { \
-        if (min >= max || data < min || data > max) \
+        if (data < min || data > max) \
         { \
             _fail = true; \
             return ret_val; \
@@ -397,6 +407,7 @@ private:
         {
             NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
+            NALCHI_BIT_STREAM_FAIL_IF_MIN_MAX_RANGE_INVALID(*this);
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_DATA_OUT_OF_RANGE(*this);
         }
 
@@ -443,6 +454,7 @@ private:
         {
             NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
+            NALCHI_BIT_STREAM_FAIL_IF_MIN_MAX_RANGE_INVALID(*this);
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_DATA_OUT_OF_RANGE(*this);
         }
 
@@ -502,6 +514,317 @@ private:
     /// To avoid that, you should only call this when you're done writing everything.
     /// @return The stream itself.
     void do_flush_word_unchecked();
+};
+
+/// @brief Helper stream to read bits from your buffer.
+///
+/// Its design is based on the articles by Glenn Fiedler, see:
+/// * https://gafferongames.com/post/reading_and_writing_packets/
+/// * https://gafferongames.com/post/serialization_strategies/
+class bit_stream_reader final
+{
+public:
+    using size_type = bit_stream_writer::size_type; ///< Size type representing number of bits and bytes.
+
+    using scratch_type =
+        bit_stream_writer::scratch_type;            ///< Internal scratch type to store the temporary scratch data.
+    using word_type = bit_stream_writer::word_type; ///< Internal word type used to read from your buffer.
+
+private:
+    scratch_type _scratch;
+    std::span<const word_type> _words;
+
+    int _scratch_bits;
+    int _words_index;
+
+    size_type _logical_total_bits;
+    size_type _logical_used_bits;
+
+    bool _init_fail;
+    bool _fail;
+
+public:
+    /// @brief Deleted copy constructor.
+    bit_stream_reader(const bit_stream_reader&) = delete;
+
+    /// @brief Deleted copy assignment operator.
+    auto operator=(const bit_stream_reader&) -> bit_stream_reader& = delete;
+
+    /// @brief Constructs a `bit_stream_reader` instance without a buffer.
+    ///
+    /// This constructor can be useful if you want to set the buffer afterwards. \n
+    /// To set the buffer, call `reset_with()`.
+    bit_stream_reader();
+
+    /// @brief Constructs a `bit_stream_reader` instance with a `std::span<word_type>` buffer.
+    /// @param buffer Buffer to read bits from.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial read from the final word.
+    bit_stream_reader(std::span<const word_type> buffer, size_type logical_bytes_length);
+
+    /// @brief Constructs a `bit_stream_reader` instance with a word range.
+    /// @param begin Pointer to the beginning of a buffer.
+    /// @param end Pointer to the end of a buffer.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial read from the final word.
+    bit_stream_reader(const word_type* begin, const word_type* end, size_type logical_bytes_length);
+
+    /// @brief Constructs a `bit_stream_reader` instance with a word begin pointer and the word length.
+    /// @param begin Pointer to the beginning of a buffer.
+    /// @param words_length Number of words in the buffer.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial read from the final word.
+    bit_stream_reader(const word_type* begin, size_type words_length, size_type logical_bytes_length);
+
+public:
+    /// @brief Check if reading from your buffer has been failed or not.
+    ///
+    /// If this is `true`, all the operations for this `bit_stream_reader` is no-op.
+    /// @return `true` if reading has been failed, otherwise `false`.
+    bool fail() const noexcept
+    {
+        return _fail;
+    }
+
+    /// @brief Check if there was no error in the reading to your buffer. \n
+    /// This is effectively same as `fail()`.
+    ///
+    /// If this is `true`, all the operations for this `bit_stream_reader` is no-op.
+    bool operator!() const noexcept
+    {
+        return fail();
+    }
+
+    /// @brief Check if there was an error in the reading to your buffer. \n
+    /// This is effectively same as `!fail()`.
+    ///
+    /// If this is `false`, all the operations for this `bit_stream_reader` is no-op.
+    operator bool() const noexcept
+    {
+        return !fail();
+    }
+
+public:
+    /// @brief Restarts the stream so that it can read from the beginning again.
+    void restart();
+
+    /// @brief Resets the stream so that it no longer holds your buffer anymore.
+    void reset();
+
+    /// @brief Resets the stream with a `std::span<word_type>` buffer.
+    /// @param buffer Buffer to read bits from.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial read from the final word.
+    void reset_with(std::span<const word_type> buffer, size_type logical_bytes_length);
+
+    /// @brief Resets the stream with a word range.
+    /// @param begin Pointer to the beginning of a buffer.
+    /// @param end Pointer to the end of a buffer.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial read from the final word.
+    void reset_with(const word_type* begin, const word_type* end, size_type logical_bytes_length);
+
+    /// @brief Resets the stream with a word begin pointer and the word length.
+    /// @param begin Pointer to the beginning of a buffer.
+    /// @param words_length Number of words in the buffer.
+    /// @param logical_bytes_length Number of bytes logically.
+    /// This is useful if you want to only allow partial read from the final word.
+    void reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length);
+
+public:
+    /// @brief Reads an integral value from the bit stream.
+    /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
+    /// @param data Data to read to.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <std::integral SInt>
+        requires(sizeof(SInt) <= sizeof(word_type))
+    auto read(SInt& data, SInt min = std::numeric_limits<SInt>::min(), SInt max = std::numeric_limits<SInt>::max())
+        -> bit_stream_reader&
+    {
+        return do_read<true>(data, min, max);
+    }
+
+    /// @brief Reads an integral value from the bit stream.
+    /// @tparam BInt Big integer type that exceeds the size of `word_type`.
+    /// @param data Data to read to.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <std::integral BInt>
+        requires(sizeof(BInt) > sizeof(word_type))
+    auto read(BInt& data, BInt min = std::numeric_limits<BInt>::min(), BInt max = std::numeric_limits<BInt>::max())
+        -> bit_stream_reader&
+    {
+        return do_read<true>(data, min, max);
+    }
+
+    /// @brief Reads a float value from the bit stream.
+    /// @param data Data to read to.
+    /// @return The stream itself.
+    auto read(float& data) -> bit_stream_reader&;
+
+    /// @brief Reads a double value from the bit stream.
+    /// @param data Data to read to.
+    /// @return The stream itself.
+    auto read(double& data) -> bit_stream_reader&;
+
+private:
+    /// @brief Actually reads an integral value from the bit stream.
+    /// @tparam Checked Whether the checks are performed or not.
+    /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
+    /// @param data Data to read to.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <bool Checked, std::integral SInt>
+        requires(sizeof(SInt) <= sizeof(word_type))
+    auto do_read(SInt& data, SInt min = std::numeric_limits<SInt>::min(), SInt max = std::numeric_limits<SInt>::max())
+        -> bit_stream_reader&
+    {
+        if constexpr (Checked)
+        {
+            NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
+            NALCHI_BIT_STREAM_FAIL_IF_MIN_MAX_RANGE_INVALID(*this);
+        }
+
+        using UInt = make_unsigned_allow_bool_t<SInt>;
+
+        // Calculate bits to read.
+        const int bits = std::bit_width(static_cast<UInt>(((UInt)max) - ((UInt)min)));
+
+        if constexpr (Checked)
+        {
+            // Fail if no more data to be read in `_words`.
+            if (_logical_used_bits + bits > _logical_total_bits)
+            {
+                _fail = true;
+                return *this;
+            }
+        }
+
+        // Load more bits to `_scratch` if needed.
+        if (bits < _scratch_bits)
+            do_fetch_word_unchecked();
+
+        // Read raw `value` from `_scratch`.
+        UInt value = static_cast<UInt>(_scratch & ((((scratch_type)1) << bits) - 1));
+
+        // Remove read bits from `_scratch`.
+        _scratch >>= bits;
+        _scratch_bits -= bits;
+
+        // Convert to original range.
+        const SInt conv = static_cast<SInt>(((SInt)value) + min);
+
+        if constexpr (Checked)
+        {
+            // Fail if it exceeds `max`.
+            if (conv > max)
+            {
+                _fail = true;
+                return *this;
+            }
+        }
+
+        // Load `conv` to `data`.
+        data = conv;
+
+        // Adjust used bits
+        _logical_used_bits += bits;
+
+        return *this;
+    }
+
+    /// @brief Actually reads an integral value from the bit stream.
+    /// @tparam Checked Whether the checks are performed or not.
+    /// @tparam BInt Big integer type that exceeds the size of `word_type`.
+    /// @param data Data to read to.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <bool Checked, std::integral BInt>
+        requires(sizeof(BInt) > sizeof(word_type))
+    auto do_read(BInt& data, BInt min = std::numeric_limits<BInt>::min(), BInt max = std::numeric_limits<BInt>::max())
+        -> bit_stream_reader&
+    {
+        if constexpr (Checked)
+        {
+            NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
+            NALCHI_BIT_STREAM_FAIL_IF_MIN_MAX_RANGE_INVALID(*this);
+        }
+
+        // Current logic assumes the only size here is 64 bits, but hey who wouldn't?
+        static_assert(sizeof(BInt) == 2 * sizeof(word_type));
+
+        using UInt = make_unsigned_allow_bool_t<BInt>;
+
+        // Calculate bits to read.
+        const int bits = std::bit_width(static_cast<UInt>(((UInt)max) - ((UInt)min)));
+
+        if constexpr (Checked)
+        {
+            // Fail if no more data to be read in `_words`.
+            if (_logical_used_bits + bits > _logical_total_bits)
+            {
+                _fail = true;
+                return *this;
+            }
+        }
+
+        const int low_bits = std::min(bits, static_cast<int>(8 * sizeof(word_type)));
+
+        // Load more bits to `_scratch` if needed.
+        if (bits < _scratch_bits)
+            do_fetch_word_unchecked();
+
+        // Read low bits from `_scratch`.
+        UInt value = static_cast<UInt>(_scratch & ((((scratch_type)1) << low_bits) - 1));
+
+        // Remove read bits from `_scratch`.
+        _scratch >>= low_bits;
+        _scratch_bits -= low_bits;
+
+        const int high_bits = bits - low_bits;
+        if (high_bits > 0)
+        {
+            // Load more bits to `_scratch` if needed.
+            if (bits < _scratch_bits)
+                do_fetch_word_unchecked();
+
+            // Read high bits from `_scratch`.
+            value |= (static_cast<UInt>(_scratch & ((((scratch_type)1) << high_bits) - 1)) << low_bits);
+
+            // Remove read bits from `_scratch`.
+            _scratch >>= high_bits;
+            _scratch_bits -= high_bits;
+        }
+
+        // Convert to original range.
+        const BInt conv = static_cast<BInt>(((BInt)value) + min);
+
+        if constexpr (Checked)
+        {
+            // Fail if it exceeds `max`.
+            if (conv > max)
+            {
+                _fail = true;
+                return *this;
+            }
+        }
+
+        // Load `conv` to `data`.
+        data = conv;
+
+        // Adjust used bits
+        _logical_used_bits += bits;
+
+        return *this;
+    }
+
+private:
+    void do_fetch_word_unchecked();
 };
 
 } // namespace nalchi

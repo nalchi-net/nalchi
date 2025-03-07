@@ -156,4 +156,103 @@ void bit_stream_writer::do_flush_word_unchecked()
     _scratch_index = std::max(0, _scratch_index - static_cast<int>(8 * sizeof(word_type)));
 }
 
+bit_stream_reader::bit_stream_reader()
+{
+    reset();
+}
+
+bit_stream_reader::bit_stream_reader(std::span<const word_type> buffer, size_type logical_bytes_length)
+{
+    reset_with(buffer, logical_bytes_length);
+}
+
+bit_stream_reader::bit_stream_reader(const word_type* begin, const word_type* end, size_type logical_bytes_length)
+{
+    reset_with(begin, end, logical_bytes_length);
+}
+
+bit_stream_reader::bit_stream_reader(const word_type* begin, size_type words_length, size_type logical_bytes_length)
+{
+    reset_with(begin, words_length, logical_bytes_length);
+}
+
+void bit_stream_reader::restart()
+{
+    _scratch = 0;
+
+    _scratch_bits = 0;
+    _words_index = 0;
+
+    _logical_used_bits = 0;
+    _fail = _init_fail;
+}
+
+void bit_stream_reader::reset()
+{
+    _words = decltype(_words)();
+    _logical_total_bits = 0;
+    _init_fail = true;
+
+    restart();
+}
+
+void bit_stream_reader::reset_with(std::span<const word_type> buffer, size_type logical_bytes_length)
+{
+    _words = buffer;
+    _logical_total_bits = 8 * logical_bytes_length;
+    _init_fail = (!buffer.data() || buffer.size() == 0 || std::size_t(logical_bytes_length) > buffer.size_bytes());
+
+    restart();
+}
+
+void bit_stream_reader::reset_with(const word_type* begin, const word_type* end, size_type logical_bytes_length)
+{
+    reset_with(std::span<const word_type>(begin, end), logical_bytes_length);
+}
+
+void bit_stream_reader::reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length)
+{
+    reset_with(std::span<const word_type>(begin, words_length), logical_bytes_length);
+}
+
+auto bit_stream_reader::read(float& data) -> bit_stream_reader&
+{
+    // Read value as `u32`
+    std::uint32_t raw;
+    if (!read(raw))
+        return *this;
+
+    // Read to `data` by reinterpreting `raw` to float
+    data = std::bit_cast<float>(raw);
+
+    return *this;
+}
+
+auto bit_stream_reader::read(double& data) -> bit_stream_reader&
+{
+    // Read value as `u64`
+    std::uint64_t raw;
+    if (!read(raw))
+        return *this;
+
+    // Read to `data` by reinterpreting `raw` to double
+    data = std::bit_cast<double>(raw);
+
+    return *this;
+}
+
+void bit_stream_reader::do_fetch_word_unchecked()
+{
+    // Get the word to load to scratch.
+    word_type word = _words[_words_index++];
+    if constexpr (std::endian::native == std::endian::big)
+        word = byteswap(word);
+
+    // Load to scratch.
+    _scratch |= (static_cast<scratch_type>(word) << _scratch_bits);
+
+    // Adjust the scratch bits.
+    _scratch_bits += 8 * sizeof(word_type);
+}
+
 } // namespace nalchi
