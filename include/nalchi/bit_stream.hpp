@@ -56,7 +56,7 @@
 namespace nalchi
 {
 
-/// @brief Bit stream writer to help writing bits to your buffer.
+/// @brief Helper stream to write bits to your buffer.
 ///
 /// Its design is based on the articles by Glenn Fiedler, see:
 /// * https://gafferongames.com/post/reading_and_writing_packets/
@@ -64,7 +64,7 @@ namespace nalchi
 ///
 /// @note `bit_stream_writer` uses an internal scratch buffer,
 /// so the final few bytes might not be flushed to your buffer yet when you're done writing. \n
-/// You @b MUST call `flush_final()` to flush the remaining bytes to your buffer. \n
+/// So, after writing everything, you @b MUST call `flush_final()` to flush the remaining bytes to your buffer. \n
 /// (Destroying the `bit_stream_writer` instance won't flush them, either.)
 class bit_stream_writer final
 {
