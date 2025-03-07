@@ -57,6 +57,7 @@ target_sources(nalchi
     FILES
         include/nalchi/export.hpp
         include/nalchi/type_traits.hpp
+        include/nalchi/concepts.hpp
         include/nalchi/server.hpp
         include/nalchi/shared_payload.hpp
         include/nalchi/shared_payload_flat.hpp

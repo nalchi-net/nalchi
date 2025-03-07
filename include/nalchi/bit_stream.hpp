@@ -2,6 +2,7 @@
 
 #include "nalchi/export.hpp"
 
+#include "nalchi/concepts.hpp"
 #include "nalchi/shared_payload.hpp"
 #include "nalchi/type_traits.hpp"
 
@@ -384,7 +385,7 @@ public:
     /// @tparam CharT Character type of the null-terminated string.
     /// @param str String to write.
     /// @return The stream itself.
-    template <typename CharT>
+    template <character CharT>
     auto write(const CharT* str) -> bit_stream_writer&
     {
         return write(std::basic_string_view<CharT>(str));
