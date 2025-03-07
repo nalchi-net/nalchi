@@ -77,7 +77,7 @@ void bit_stream_writer::reset()
 void bit_stream_writer::reset_with(shared_payload buffer, size_type logical_bytes_length)
 {
     reset_with(
-        std::span<word_type>(reinterpret_cast<word_type*>(buffer.ptr), buffer.get_payload_size() / sizeof(word_type)),
+        std::span<word_type>(reinterpret_cast<word_type*>(buffer.ptr), buffer.get_aligned_size() / sizeof(word_type)),
         logical_bytes_length);
 }
 

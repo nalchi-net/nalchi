@@ -5,6 +5,8 @@
 #include "aligned_alloc.hpp"
 #include "math.hpp"
 
+#include <steam/steamnetworkingtypes.h>
+
 #include <algorithm>
 #include <cstddef>
 #include <cstdlib>
@@ -13,18 +15,23 @@
 namespace nalchi
 {
 
-NALCHI_API shared_payload shared_payload::allocate(int size)
+namespace
+{
+constexpr auto GNS_MAX_MSG_SEND_SIZE = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
+}
+
+NALCHI_API shared_payload shared_payload::allocate(alloc_size_t size)
 {
     shared_payload payload{};
 
-    if (size > 0)
+    if (0 < size && size <= GNS_MAX_MSG_SEND_SIZE)
     {
         // Alignment should be the max of:
         // * `bit_stream_writer`'s word write measure, to avoid unaligned write to payload
         // * atomic reference count, to avoid tearing of ref count
         constexpr std::size_t ALLOC_ALIGNMENT = std::max({
             alignof(ref_count_t),                  // to store ref count
-            alignof(alloc_size_t),                 // to store allocated buffer size
+            alignof(alloc_size_t),                 // to store requested payload size
             alignof(bit_stream_writer::word_type), // to store payload data
         });
 
@@ -37,9 +44,9 @@ NALCHI_API shared_payload shared_payload::allocate(int size)
         // Calculate the required space for (ref count + alloc size + actual payload)
         // Actual payload size should be ceiled to `bit_stream_writer`'s word's multiple,
         // to avoid buffer overrun on last scratch write in `bit_stream_writer`.
-        const alloc_size_t alloc_size = static_cast<alloc_size_t>(
-            sizeof(ref_count_t) + sizeof(alloc_size_t) +
-            ceil_to_multiple_of<sizeof(bit_stream_writer::word_type)>(static_cast<std::uint32_t>(size)));
+        const alloc_size_t alloc_size =
+            static_cast<alloc_size_t>(sizeof(ref_count_t) + sizeof(alloc_size_t) +
+                                      ceil_to_multiple_of<sizeof(bit_stream_writer::word_type)>(size));
 
         // We actually don't need `std::aligned_alloc()`.
         // `std::malloc()` is already sufficiently aligned.
@@ -57,9 +64,10 @@ NALCHI_API shared_payload shared_payload::allocate(int size)
             ((void)ref_count); // Suppress the unused variable warning.
 #endif
 
-            // Use the second space to store alloc size.
-            alloc_size_t* alloc_len = reinterpret_cast<alloc_size_t*>((std::byte*)raw_space + sizeof(ref_count_t));
-            *alloc_len = alloc_size;
+            // Use the second space to store requested payload size.
+            alloc_size_t* req_payload_len =
+                reinterpret_cast<alloc_size_t*>((std::byte*)raw_space + sizeof(ref_count_t));
+            *req_payload_len = size;
 
             // Point to the actual payload space.
             payload.ptr = static_cast<void*>((std::byte*)raw_space + sizeof(ref_count_t) + sizeof(alloc_size_t));
@@ -82,14 +90,20 @@ NALCHI_API void shared_payload::force_deallocate(shared_payload payload)
     std::free(ref_count);
 }
 
-NALCHI_API int shared_payload::get_payload_size() const
+NALCHI_API auto shared_payload::get_size() const -> alloc_size_t
 {
-    const auto size = *reinterpret_cast<shared_payload::alloc_size_t*>(
-                          (std::byte*)ptr - sizeof(shared_payload::alloc_size_t)) // Get the hidden alloc size field
-                      - sizeof(shared_payload::ref_count_t) -
-                      sizeof(shared_payload::alloc_size_t); // Remove header size
+    // Get the hidden requested payload size field
+    return *reinterpret_cast<alloc_size_t*>((std::byte*)ptr - sizeof(alloc_size_t));
+}
 
-    return static_cast<int>(size);
+NALCHI_API auto shared_payload::get_aligned_size() const -> alloc_size_t
+{
+    return ceil_to_multiple_of<sizeof(bit_stream_writer::word_type)>(get_size());
+}
+
+NALCHI_API auto shared_payload::get_internal_alloc_size() const -> alloc_size_t
+{
+    return static_cast<alloc_size_t>(sizeof(ref_count_t) + sizeof(alloc_size_t) + get_aligned_size());
 }
 
 } // namespace nalchi
