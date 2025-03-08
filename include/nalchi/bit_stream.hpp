@@ -439,7 +439,7 @@ private:
         using UInt = make_unsigned_allow_bool_t<SInt>;
 
         // Convert `data` to `value` to actually write.
-        const scratch_type value = ((UInt)data) - ((UInt)min);
+        const scratch_type value = static_cast<UInt>(((UInt)data) - ((UInt)min));
         const int bits = std::bit_width(static_cast<UInt>(((UInt)max) - ((UInt)min)));
 
         if constexpr (Checked)
@@ -489,7 +489,7 @@ private:
         using UInt = make_unsigned_allow_bool_t<BInt>;
 
         // Convert `data` to `value`.
-        const scratch_type value = ((UInt)data) - ((UInt)min);
+        const scratch_type value = static_cast<UInt>(((UInt)data) - ((UInt)min));
         const int bits = std::bit_width(static_cast<UInt>(((UInt)max) - ((UInt)min)));
 
         if constexpr (Checked)
