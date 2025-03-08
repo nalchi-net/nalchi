@@ -85,7 +85,7 @@ namespace nalchi
 ///
 /// @note `bit_stream_writer` uses an internal scratch buffer,
 /// so the final few bytes might not be flushed to your buffer yet when you're done writing. \n
-/// So, after writing everything, you @b MUST call `flush_final()` to flush the remaining bytes to your buffer. \n
+/// So, after writing everything, you @b must call `flush_final()` to flush the remaining bytes to your buffer. \n
 /// (Destroying the `bit_stream_writer` instance won't flush them, either.)
 class bit_stream_writer final
 {
@@ -238,17 +238,17 @@ public:
 
 public:
     /// @brief Restarts the stream so that it can write from the beginning again.
-    /// @note This function resets internal states @b WITHOUT flushing,
+    /// @note This function resets internal states @b without flushing,
     /// so if you need flushing, you should call `flush_final()` beforehand.
     void restart();
 
     /// @brief Resets the stream so that it no longer holds your buffer anymore.
-    /// @note This function removes reference to your buffer @b WITHOUT flushing, \n
+    /// @note This function removes reference to your buffer @b without flushing, \n
     /// so if you need flushing, you should call `flush_final()` beforehand.
     void reset();
 
     /// @brief Resets the stream with a `shared_payload` buffer.
-    /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
+    /// @note This function resets to the new buffer @b without flushing to your previous buffer, \n
     /// so if you need flushing, you should call `flush_final()` beforehand.
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
@@ -256,7 +256,7 @@ public:
     void reset_with(shared_payload buffer, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a `std::span<word_type>` buffer.
-    /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
+    /// @note This function resets to the new buffer @b without flushing to your previous buffer, \n
     /// so if you need flushing, you should call `flush_final()` beforehand.
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
@@ -264,7 +264,7 @@ public:
     void reset_with(std::span<word_type> buffer, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a word range.
-    /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
+    /// @note This function resets to the new buffer @b without flushing to your previous buffer, \n
     /// so if you need flushing, you should call `flush_final()` beforehand.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param end Pointer to the end of a buffer.
@@ -273,7 +273,7 @@ public:
     void reset_with(word_type* begin, word_type* end, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a word begin pointer and the word length.
-    /// @note This function resets to the new buffer @b WITHOUT flushing to your previous buffer, \n
+    /// @note This function resets to the new buffer @b without flushing to your previous buffer, \n
     /// so if you need flushing, you should call `flush_final()` beforehand.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param words_length Number of words in the buffer.
@@ -742,7 +742,7 @@ public:
     ///
     /// If @p max_length is not enough to store the string, \n
     /// this function will set the fail flag and read nothing.
-    /// @note @p max_length does @b NOT include null character, so your buffer @b MUST allocate additional space for it.
+    /// @note @p max_length does @b not include null character, so your buffer @b must allocate additional space for it.
     ///
     /// For example, if @p max_length is 4 for `char16_t`, you need 10 bytes. \n
     /// Because you need space for 5 `char16_t` including null char, and `char16_t` is 2 bytes per char.

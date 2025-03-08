@@ -12,7 +12,7 @@ namespace nalchi
 ///
 /// The payload is "shared" when it is used for multicast or broadcast.
 /// @note As `ptr` has a hidden reference count & alloc size fields on front,
-/// you @b CAN'T just use your own buffer as a `ptr`; \n
+/// you @b can't just use your own buffer as a `ptr`; \n
 /// You need to call `nalchi_allocate_shared_payload()` to allocate the `shared_payload`.
 struct shared_payload
 {
@@ -30,7 +30,7 @@ struct shared_payload
 
     /// @brief Force deallocates the shared payload without sending it.
     /// @note If you send the payload, nalchi takes the ownership of the payload and releases it automatically. \n
-    /// So, you should @b NOT call this if you already sent the payload. \n \n
+    /// So, you should @b not call this if you already sent the payload. \n \n
     /// Calling this is only necessary when you have some exceptions in your program
     /// that prevents sending the allocated payload.
     /// @param payload Shared payload to force deallocate.

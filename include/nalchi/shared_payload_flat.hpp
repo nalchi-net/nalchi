@@ -16,7 +16,7 @@ NALCHI_FLAT_API nalchi::shared_payload nalchi_shared_payload_allocate(nalchi::sh
 
 /// @brief Force deallocates the shared payload without sending it.
 /// @note If you send the payload, nalchi takes the ownership of the payload and releases it automatically. \n
-/// So, you should @b NOT call this if you already sent the payload. \n \n
+/// So, you should @b not call this if you already sent the payload. \n \n
 /// Calling this is only necessary when you have some exceptions in your program
 /// that prevents sending the allocated payload.
 /// @param payload Shared payload to force deallocate.
