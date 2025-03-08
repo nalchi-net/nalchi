@@ -826,7 +826,7 @@ private:
         }
 
         // Load more bits to `_scratch` if needed.
-        if (bits < _scratch_bits)
+        if (bits > _scratch_bits)
             do_fetch_word_unchecked();
 
         // Read raw `value` from `_scratch`.
@@ -897,7 +897,7 @@ private:
         const int low_bits = std::min(bits, static_cast<int>(8 * sizeof(word_type)));
 
         // Load more bits to `_scratch` if needed.
-        if (bits < _scratch_bits)
+        if (low_bits > _scratch_bits)
             do_fetch_word_unchecked();
 
         // Read low bits from `_scratch`.
@@ -911,7 +911,7 @@ private:
         if (high_bits > 0)
         {
             // Load more bits to `_scratch` if needed.
-            if (bits < _scratch_bits)
+            if (high_bits > _scratch_bits)
                 do_fetch_word_unchecked();
 
             // Read high bits from `_scratch`.
