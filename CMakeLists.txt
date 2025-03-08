@@ -13,7 +13,7 @@ if(NOT USE_STEAMWORKS)
     option(USE_STEAMWEBRTC "Build WebRTC to get ICE support for P2P for stand-alone GameNetworkingSockets" FALSE)
 endif()
 
-# Set GameNetworkingSockets option
+# Set GameNetworkingSockets options
 if(BUILD_SHARED_LIBS)
     set(BUILD_STATIC_LIB FALSE)
     set(BUILD_SHARED_LIB TRUE)
@@ -21,6 +21,9 @@ else()
     set(BUILD_STATIC_LIB TRUE)
     set(BUILD_SHARED_LIB FALSE)
 endif()
+
+# nalchi options
+option(NALCHI_BUILD_TESTS "Build nalchi tests" FALSE)
 
 # nalchi target
 add_library(nalchi)
@@ -42,11 +45,12 @@ else()
 endif()
 
 # Compiler warnings
-target_compile_options(nalchi PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+set(nalchi_compile_options
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /Zc:preprocessor /Zc:__cplusplus>
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
         -Wall -Wextra -Wpedantic>
 )
+target_compile_options(nalchi PRIVATE ${nalchi_compile_options})
 
 # nalchi public headers
 target_sources(nalchi
@@ -138,6 +142,11 @@ else() # Open source GameNetworkingSockets
     else()
         target_link_libraries(nalchi PUBLIC GameNetworkingSockets_s)
     endif()
+endif()
+
+# tests
+if(NALCHI_BUILD_TESTS)
+    add_subdirectory(tests)
 endif()
 
 # Copy dependencies
