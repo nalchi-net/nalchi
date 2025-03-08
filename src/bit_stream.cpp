@@ -117,6 +117,27 @@ auto bit_stream_writer::flush_final() -> bit_stream_writer&
     return *this;
 }
 
+auto bit_stream_writer::write(const void* data, size_type size) -> bit_stream_writer&
+{
+    NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
+    NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
+
+    // Overflow check.
+    if (_logical_used_bits + 8 * size > _logical_total_bits)
+    {
+        _fail = true;
+        return *this;
+    }
+
+    const std::uint8_t* ptr = reinterpret_cast<const std::uint8_t*>(data);
+
+    // Write each byte one by one.
+    for (size_type i = 0; i < size; ++i)
+        do_write<false>(ptr[i]);
+
+    return *this;
+}
+
 auto bit_stream_writer::write(float data) -> bit_stream_writer&
 {
     // Use the reinterpreted value of `data` as an u32
@@ -213,6 +234,26 @@ void bit_stream_reader::reset_with(const word_type* begin, const word_type* end,
 void bit_stream_reader::reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length)
 {
     reset_with(std::span<const word_type>(begin, words_length), logical_bytes_length);
+}
+
+auto bit_stream_reader::read(void* data, size_type size) -> bit_stream_reader&
+{
+    NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
+
+    // Overflow check.
+    if (_logical_used_bits + 8 * size > _logical_total_bits)
+    {
+        _fail = true;
+        return *this;
+    }
+
+    std::uint8_t* ptr = reinterpret_cast<std::uint8_t*>(data);
+
+    // Read each byte one by one.
+    for (size_type i = 0; i < size; ++i)
+        do_read<false>(ptr[i]);
+
+    return *this;
 }
 
 auto bit_stream_reader::read(float& data) -> bit_stream_reader&

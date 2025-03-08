@@ -295,6 +295,14 @@ public:
     }
 
 public:
+    /// @brief Writes some arbitrary data to the bit stream.
+    /// @note Bytes in your data could be read @b swapped if it is sent to the system with different endianness. \n
+    /// So, prefer using other overloads instead.
+    /// @param data Pointer to the arbitrary data.
+    /// @param size Size in bytes of the data.
+    /// @return The stream itself.
+    auto write(const void* data, size_type size) -> bit_stream_writer&;
+
     /// @brief Writes an integral value to the bit stream.
     /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
     /// @param data Data to write.
@@ -650,6 +658,14 @@ public:
     void reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length);
 
 public:
+    /// @brief Reads some arbitrary data from the bit stream.
+    /// @note You could read @b swapped bytes if the data came from the system with different endianness. \n
+    /// So, prefer using other overloads instead.
+    /// @param data Pointer to the arbitrary data.
+    /// @param size Size in bytes of the data.
+    /// @return The stream itself.
+    auto read(void* data, size_type size) -> bit_stream_reader&;
+
     /// @brief Reads an integral value from the bit stream.
     /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
     /// @param data Data to read to.
