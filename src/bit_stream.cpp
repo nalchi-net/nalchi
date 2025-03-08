@@ -8,6 +8,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <utility>
 
 namespace nalchi
 {
@@ -238,6 +239,70 @@ auto bit_stream_reader::read(double& data) -> bit_stream_reader&
     data = std::bit_cast<double>(raw);
 
     return *this;
+}
+
+auto bit_stream_reader::peek_string_length() -> ssize_type
+{
+    // Back up previous stream states
+    const auto prev_scratch = _scratch;
+    const auto prev_scratch_bits = _scratch_bits;
+    const auto prev_words_index = _words_index;
+    const auto prev_logical_used_bits = _logical_used_bits;
+
+    // Read string length
+    const auto result = read_string_length();
+
+    // Restore previous stream states
+    _scratch = prev_scratch;
+    _scratch_bits = prev_scratch_bits;
+    _words_index = prev_words_index;
+    _logical_used_bits = prev_logical_used_bits;
+
+    return result;
+}
+
+auto bit_stream_reader::read_string_length() -> ssize_type
+{
+    ssize_type result = -1;
+
+    // Read prefix of string length prefix
+    size_type len_of_len;
+    if (do_read<true>(len_of_len, bit_stream_writer::MIN_STR_LEN_PREFIX_PREFIX,
+                      bit_stream_writer::MAX_STR_LEN_PREFIX_PREFIX))
+    {
+        // Read string length prefix
+        switch (len_of_len)
+        {
+        case size_type(0): {
+            std::uint8_t len;
+            if (do_read<true>(len))
+                result = static_cast<ssize_type>(len);
+            break;
+        }
+        case size_type(1): {
+            std::uint16_t len;
+            if (do_read<true>(len))
+                result = static_cast<ssize_type>(len);
+            break;
+        }
+        case size_type(2): {
+            std::uint32_t len;
+            if (do_read<true>(len))
+                result = static_cast<ssize_type>(len);
+            break;
+        }
+        case size_type(3): {
+            std::uint64_t len;
+            if (do_read<true>(len))
+                result = static_cast<ssize_type>(len);
+            break;
+        }
+        default:
+            std::unreachable();
+        }
+    }
+
+    return result;
 }
 
 void bit_stream_reader::do_fetch_word_unchecked()

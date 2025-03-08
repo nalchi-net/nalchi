@@ -56,8 +56,18 @@
 #define NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(prefix_bytes, str_len_bytes) \
     do \
     { \
-        if (_logical_used_bits + PREFIX_PREFIX_BITS + (8 * (prefix_bytes)) + (8 * (str_len_bytes)) > \
+        if (_logical_used_bits + STR_LEN_PREFIX_PREFIX_BITS + (8 * (prefix_bytes)) + (8 * (str_len_bytes)) > \
             _logical_total_bits) \
+        { \
+            _fail = true; \
+            return *this; \
+        } \
+    } while (false)
+
+#define NALCHI_BIT_STREAM_READER_FAIL_IF_STR_OVERFLOW(str_len_bytes) \
+    do \
+    { \
+        if (_logical_used_bits + (8 * (str_len_bytes)) > _logical_total_bits) \
         { \
             _fail = true; \
             return *this; \
@@ -91,6 +101,13 @@ public:
 
     static_assert(std::endian::native == std::endian::little || std::endian::native == std::endian::big,
                   "Mixed endian system is not supported");
+
+public:
+    // "prefix of string length prefix"
+    // 0: u8 / 1: u16 / 2: u32 / 3: u64
+    static constexpr size_type STR_LEN_PREFIX_PREFIX_BITS = 2u;
+    static constexpr size_type MIN_STR_LEN_PREFIX_PREFIX = 0u;
+    static constexpr size_type MAX_STR_LEN_PREFIX_PREFIX = 3u;
 
 private:
     scratch_type _scratch;
@@ -327,44 +344,43 @@ public:
         NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
         NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
 
-        using UInt = std::make_unsigned_t<CharT>;
-
         // Get the length of the string.
         const auto len = str.length();
 
         // Write a "prefix of length prefix" + length prefix.
         // 0: u8 / 1: u16 / 2: u32 / 3: u64
-        constexpr auto PREFIX_PREFIX_BITS = 2;
-        constexpr auto MIN_PREFIX_PREFIX = 0u;
-        constexpr auto MAX_PREFIX_PREFIX = 3u;
         if (len <= std::numeric_limits<std::uint8_t>::max())
         {
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(sizeof(std::uint8_t), len * sizeof(CharT));
-            do_write<false>(0u, MIN_PREFIX_PREFIX, MAX_PREFIX_PREFIX); // prefix of length prefix
-            do_write<false>(static_cast<std::uint8_t>(len));           // length prefix
+            do_write<false>(size_type(0), MIN_STR_LEN_PREFIX_PREFIX,
+                            MAX_STR_LEN_PREFIX_PREFIX);      // prefix of length prefix
+            do_write<false>(static_cast<std::uint8_t>(len)); // length prefix
         }
         else if (len <= std::numeric_limits<std::uint16_t>::max())
         {
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(sizeof(std::uint16_t), len * sizeof(CharT));
-            do_write<false>(1u, MIN_PREFIX_PREFIX, MAX_PREFIX_PREFIX); // prefix of length prefix
-            do_write<false>(static_cast<std::uint16_t>(len));          // length prefix
+            do_write<false>(size_type(1), MIN_STR_LEN_PREFIX_PREFIX,
+                            MAX_STR_LEN_PREFIX_PREFIX);       // prefix of length prefix
+            do_write<false>(static_cast<std::uint16_t>(len)); // length prefix
         }
         else if (len <= std::numeric_limits<std::uint32_t>::max())
         {
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(sizeof(std::uint32_t), len * sizeof(CharT));
-            do_write<false>(2u, MIN_PREFIX_PREFIX, MAX_PREFIX_PREFIX); // prefix of length prefix
-            do_write<false>(static_cast<std::uint32_t>(len));          // length prefix
+            do_write<false>(size_type(2), MIN_STR_LEN_PREFIX_PREFIX,
+                            MAX_STR_LEN_PREFIX_PREFIX);       // prefix of length prefix
+            do_write<false>(static_cast<std::uint32_t>(len)); // length prefix
         }
         else // len <= std::numeric_limits<std::uint64_t>::max()
         {
             NALCHI_BIT_STREAM_WRITER_FAIL_IF_STR_OVERFLOW(sizeof(std::uint64_t), len * sizeof(CharT));
-            do_write<false>(3u, MIN_PREFIX_PREFIX, MAX_PREFIX_PREFIX); // prefix of length prefix
-            do_write<false>(static_cast<std::uint64_t>(len));          // length prefix
+            do_write<false>(size_type(3), MIN_STR_LEN_PREFIX_PREFIX,
+                            MAX_STR_LEN_PREFIX_PREFIX);       // prefix of length prefix
+            do_write<false>(static_cast<std::uint64_t>(len)); // length prefix
         }
 
-        // Just write every characters as an `UInt`.
+        // Just write every character one by one.
         for (const auto ch : str)
-            do_write<false>(static_cast<UInt>(ch));
+            do_write<false>(ch);
 
         return *this;
     }
@@ -525,7 +541,8 @@ private:
 class bit_stream_reader final
 {
 public:
-    using size_type = bit_stream_writer::size_type; ///< Size type representing number of bits and bytes.
+    using size_type = bit_stream_writer::size_type;   ///< Size type representing number of bits and bytes.
+    using ssize_type = std::make_signed_t<size_type>; ///< Signed size type to allow negative error value.
 
     using scratch_type =
         bit_stream_writer::scratch_type;            ///< Internal scratch type to store the temporary scratch data.
@@ -671,7 +688,94 @@ public:
     /// @return The stream itself.
     auto read(double& data) -> bit_stream_reader&;
 
+    /// @brief Reads a string from the bit stream.
+    ///
+    /// If the length prefix for current stream position exceeds @p max_length, \n
+    /// this function will set the fail flag and read nothing.
+    /// @tparam CharT Underlying character type of `std::basic_string`.
+    /// @tparam CharTraits Char traits for `CharT`.
+    /// @tparam Allocator Underlying allocator for `std::basic_string`.
+    /// @param str String to read to.
+    /// @param max_length Maximum number of `CharT` that can be read. \n
+    /// This is to prevent a huge allocation when a malicious message requests it.
+    /// @return The stream itself.
+    template <typename CharT, typename CharTraits, typename Allocator>
+    auto read(const std::basic_string<CharT, CharTraits, Allocator>& str, size_type max_length) -> bit_stream_reader&
+    {
+        NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
+
+        // Read the length of the string.
+        ssize_type len = read_string_length();
+        if (len < 0 || len > max_length)
+        {
+            _fail = true;
+            return *this;
+        }
+
+        NALCHI_BIT_STREAM_READER_FAIL_IF_STR_OVERFLOW(len * sizeof(CharT));
+
+        // Resize and read every character one by one.
+        str.resize(len);
+        for (auto& ch : str)
+            do_read<false>(ch);
+
+        return *this;
+    }
+
+    /// @brief Reads a null-terminated string from the bit stream.
+    ///
+    /// If @p max_length is not enough to store the string, \n
+    /// this function will set the fail flag and read nothing.
+    /// @note @p max_length does @b NOT include null character, so your buffer @b MUST allocate additional space for it.
+    ///
+    /// For example, if @p max_length is 4 for `char16_t`, you need 10 bytes. \n
+    /// Because you need space for 5 `char16_t` including null char, and `char16_t` is 2 bytes per char.
+    /// @tparam CharT Character type of the null-terminated string.
+    /// @param str Null-terminated string to read to.
+    /// @param max_length Maximum number of `CharT` that can be read.
+    /// @return The stream itself.
+    template <character CharT>
+    auto read(const CharT* str, size_type max_length) -> bit_stream_reader&
+    {
+        NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
+
+        // Read the length of the string.
+        ssize_type len = read_string_length();
+        if (len < 0 || len > max_length)
+        {
+            _fail = true;
+            return *this;
+        }
+
+        NALCHI_BIT_STREAM_READER_FAIL_IF_STR_OVERFLOW(len * sizeof(CharT));
+
+        // Read every character one by one.
+        for (ssize_type i = 0; i < len; ++i)
+            do_read<false>(str[i]);
+
+        // Insert final null character.
+        str[len] = CharT(0);
+
+        return *this;
+    }
+
+    /// @brief Peeks the string length prefix from the current stream position.
+    ///
+    /// If it fails to read a string length prefix, \n
+    /// this function will return a negative value and set the fail flag.
+    /// @note Be careful, if current stream position was not on the string length prefix, it might read garbage length!
+    /// @return Length of `CharT` stored in it, or a negative value if length prefix is invalid.
+    auto peek_string_length() -> ssize_type;
+
 private:
+    /// @brief Reads the string length prefix from the current stream position.
+    ///
+    /// If it fails to read a string length prefix, \n
+    /// this function will return a negative value and set the fail flag.
+    /// @note Be careful, if current stream position was not on the string length prefix, it might read garbage length!
+    /// @return Length of `CharT` stored in it, or a negative value if length prefix is invalid.
+    auto read_string_length() -> ssize_type;
+
     /// @brief Actually reads an integral value from the bit stream.
     /// @tparam Checked Whether the checks are performed or not.
     /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
