@@ -265,6 +265,8 @@ auto bit_stream_reader::read_string_length() -> ssize_type
 {
     ssize_type result = -1;
 
+    NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(result);
+
     // Read prefix of string length prefix
     size_type len_of_len;
     if (do_read<true>(len_of_len, bit_stream_writer::MIN_STR_LEN_PREFIX_PREFIX,
