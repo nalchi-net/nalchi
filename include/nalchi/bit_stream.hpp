@@ -700,7 +700,7 @@ public:
     /// This is to prevent a huge allocation when a malicious message requests it.
     /// @return The stream itself.
     template <character CharT, typename CharTraits, typename Allocator>
-    auto read(const std::basic_string<CharT, CharTraits, Allocator>& str, size_type max_length) -> bit_stream_reader&
+    auto read(std::basic_string<CharT, CharTraits, Allocator>& str, size_type max_length) -> bit_stream_reader&
     {
         NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
 
@@ -735,7 +735,7 @@ public:
     /// @param max_length Maximum number of `CharT` that can be read.
     /// @return The stream itself.
     template <character CharT>
-    auto read(const CharT* str, size_type max_length) -> bit_stream_reader&
+    auto read(CharT* str, size_type max_length) -> bit_stream_reader&
     {
         NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
 
