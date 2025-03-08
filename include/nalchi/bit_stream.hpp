@@ -338,7 +338,7 @@ public:
     /// @tparam CharTraits Char traits for `CharT`.
     /// @param str String to write.
     /// @return The stream itself.
-    template <typename CharT, typename CharTraits>
+    template <character CharT, typename CharTraits>
     auto write(std::basic_string_view<CharT, CharTraits> str) -> bit_stream_writer&
     {
         NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
@@ -391,7 +391,7 @@ public:
     /// @tparam Allocator Underlying allocator for `std::basic_string`.
     /// @param str String to write.
     /// @return The stream itself.
-    template <typename CharT, typename CharTraits, typename Allocator>
+    template <character CharT, typename CharTraits, typename Allocator>
     auto write(const std::basic_string<CharT, CharTraits, Allocator>& str) -> bit_stream_writer&
     {
         return write(std::basic_string_view<CharT, CharTraits>(str));
@@ -699,7 +699,7 @@ public:
     /// @param max_length Maximum number of `CharT` that can be read. \n
     /// This is to prevent a huge allocation when a malicious message requests it.
     /// @return The stream itself.
-    template <typename CharT, typename CharTraits, typename Allocator>
+    template <character CharT, typename CharTraits, typename Allocator>
     auto read(const std::basic_string<CharT, CharTraits, Allocator>& str, size_type max_length) -> bit_stream_reader&
     {
         NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
