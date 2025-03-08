@@ -2,7 +2,6 @@
 
 #include "nalchi/shared_payload.hpp"
 
-#include "byteswap.hpp"
 #include "math.hpp"
 
 #include <steam/steamnetworkingtypes.h>
@@ -144,7 +143,7 @@ void bit_stream_writer::do_flush_word_unchecked()
     // Get the lower word bits to flush.
     word_type word = static_cast<word_type>((_scratch << (8 * sizeof(word_type))) >> (8 * sizeof(word_type)));
     if constexpr (std::endian::native == std::endian::big)
-        word = byteswap(word);
+        word = std::byteswap(word);
 
     // Flush the word.
     _words[_words_index++] = word;
@@ -246,7 +245,7 @@ void bit_stream_reader::do_fetch_word_unchecked()
     // Get the word to load to scratch.
     word_type word = _words[_words_index++];
     if constexpr (std::endian::native == std::endian::big)
-        word = byteswap(word);
+        word = std::byteswap(word);
 
     // Load to scratch.
     _scratch |= (static_cast<scratch_type>(word) << _scratch_bits);
