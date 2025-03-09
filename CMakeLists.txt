@@ -24,6 +24,7 @@ endif()
 
 # nalchi options
 option(NALCHI_BUILD_TESTS "Build nalchi tests" FALSE)
+option(NALCHI_ASAN "Enable AddressSanitizer for nalchi" FALSE)
 
 # nalchi target
 add_library(nalchi)
@@ -44,13 +45,31 @@ else()
     target_compile_definitions(nalchi PUBLIC NALCHI_BUILD_STATIC)
 endif()
 
-# Compiler warnings
+# Compiler options
 set(nalchi_compile_options
     $<$<CXX_COMPILER_ID:MSVC>:/W4 /Zc:preprocessor /Zc:__cplusplus>
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
         -Wall -Wextra -Wpedantic>
 )
+set(nalchi_link_options "")
+
+if(NALCHI_ASAN)
+    set(nalchi_compile_options
+        ${nalchi_compile_options}
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+        -fsanitize=address>
+        $<$<CXX_COMPILER_ID:MSVC>:/fsanitize=address>
+    )
+    set(nalchi_link_options
+        ${nalchi_link_options}
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+        -fsanitize=address>
+        $<$<CXX_COMPILER_ID:MSVC>:/INCREMENTAL:NO /DEBUG>
+    )
+endif()
+
 target_compile_options(nalchi PRIVATE ${nalchi_compile_options})
+target_link_options(nalchi PRIVATE ${nalchi_link_options})
 
 # nalchi public headers
 target_sources(nalchi
