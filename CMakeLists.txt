@@ -85,6 +85,7 @@ target_sources(nalchi
         include/nalchi/shared_payload.hpp
         include/nalchi/shared_payload_flat.hpp
         include/nalchi/bit_stream.hpp
+        include/nalchi/bit_stream_flat.hpp
 )
 
 # nalchi sources
@@ -93,6 +94,7 @@ target_sources(nalchi PRIVATE
     src/shared_payload.cpp
     src/shared_payload_flat.cpp
     src/bit_stream.cpp
+    src/bit_stream_flat.cpp
 )
 
 # Steamworks SDK or stand-alone GameNetworkingSockets?

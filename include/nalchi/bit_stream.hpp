@@ -140,40 +140,40 @@ public:
     ///
     /// This constructor can be useful if you want to set the buffer afterwards. \n
     /// To set the buffer, call `reset_with()`.
-    bit_stream_writer();
+    NALCHI_API bit_stream_writer();
 
     /// @brief Constructs a `bit_stream_writer` instance with a `shared_payload` buffer.
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    bit_stream_writer(shared_payload buffer, size_type logical_bytes_length);
+    NALCHI_API bit_stream_writer(shared_payload buffer, size_type logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_writer` instance with a `std::span<word_type>` buffer.
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    bit_stream_writer(std::span<word_type> buffer, size_type logical_bytes_length);
+    NALCHI_API bit_stream_writer(std::span<word_type> buffer, size_type logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_writer` instance with a word range.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param end Pointer to the end of a buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    bit_stream_writer(word_type* begin, word_type* end, size_type logical_bytes_length);
+    NALCHI_API bit_stream_writer(word_type* begin, word_type* end, size_type logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_writer` instance with a word begin pointer and the word length.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param words_length Number of words in the buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    bit_stream_writer(word_type* begin, size_type words_length, size_type logical_bytes_length);
+    NALCHI_API bit_stream_writer(word_type* begin, size_type words_length, size_type logical_bytes_length);
 
 public:
     /// @brief Check if writing to your buffer has been failed or not.
     ///
     /// If this is `true`, all the operations for this `bit_stream_writer` is no-op.
     /// @return `true` if writing has been failed, otherwise `false`.
-    bool fail() const noexcept
+    NALCHI_API bool fail() const noexcept
     {
         return _fail;
     }
@@ -182,7 +182,7 @@ public:
     /// This is effectively same as `fail()`.
     ///
     /// If this is `true`, all the operations for this `bit_stream_writer` is no-op.
-    bool operator!() const noexcept
+    NALCHI_API bool operator!() const noexcept
     {
         return fail();
     }
@@ -191,7 +191,7 @@ public:
     /// This is effectively same as `!fail()`.
     ///
     /// If this is `false`, all the operations for this `bit_stream_writer` is no-op.
-    operator bool() const noexcept
+    NALCHI_API operator bool() const noexcept
     {
         return !fail();
     }
@@ -199,39 +199,39 @@ public:
 public:
     /// @brief Gets the number of total bytes in the stream.
     /// @return Number of total bytes in the stream.
-    auto total_bytes() const -> size_type
+    NALCHI_API auto total_bytes() const -> size_type
     {
         return _logical_total_bits / 8;
     }
 
     /// @brief Gets the number of total bits in the stream.
     /// @return Number of total bits in the stream.
-    auto total_bits() const -> size_type
+    NALCHI_API auto total_bits() const -> size_type
     {
         return _logical_total_bits;
     }
 
     /// @brief Gets the number of used bytes in the stream.
     /// @return Number of used bytes in the stream.
-    auto used_bytes() const -> size_type;
+    NALCHI_API auto used_bytes() const -> size_type;
 
     /// @brief Gets the number of used bits in the stream.
     /// @return Number of used bits in the stream.
-    auto used_bits() const -> size_type
+    NALCHI_API auto used_bits() const -> size_type
     {
         return _logical_used_bits;
     }
 
     /// @brief Gets the number of unused bytes in the stream.
     /// @return Number of unused bytes in the stream.
-    auto unused_bytes() const -> size_type
+    NALCHI_API auto unused_bytes() const -> size_type
     {
         return total_bytes() - used_bytes();
     }
 
     /// @brief Gets the number of unused bits in the stream.
     /// @return Number of unused bits in the stream.
-    auto unused_bits() const -> size_type
+    NALCHI_API auto unused_bits() const -> size_type
     {
         return total_bits() - used_bits();
     }
@@ -240,12 +240,12 @@ public:
     /// @brief Restarts the stream so that it can write from the beginning again.
     /// @note This function resets internal states @b without flushing,
     /// so if you need flushing, you should call `flush_final()` beforehand.
-    void restart();
+    NALCHI_API void restart();
 
     /// @brief Resets the stream so that it no longer holds your buffer anymore.
     /// @note This function removes reference to your buffer @b without flushing, \n
     /// so if you need flushing, you should call `flush_final()` beforehand.
-    void reset();
+    NALCHI_API void reset();
 
     /// @brief Resets the stream with a `shared_payload` buffer.
     /// @note This function resets to the new buffer @b without flushing to your previous buffer, \n
@@ -253,7 +253,7 @@ public:
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    void reset_with(shared_payload buffer, size_type logical_bytes_length);
+    NALCHI_API void reset_with(shared_payload buffer, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a `std::span<word_type>` buffer.
     /// @note This function resets to the new buffer @b without flushing to your previous buffer, \n
@@ -261,7 +261,7 @@ public:
     /// @param buffer Buffer to write bits to.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    void reset_with(std::span<word_type> buffer, size_type logical_bytes_length);
+    NALCHI_API void reset_with(std::span<word_type> buffer, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a word range.
     /// @note This function resets to the new buffer @b without flushing to your previous buffer, \n
@@ -270,7 +270,7 @@ public:
     /// @param end Pointer to the end of a buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    void reset_with(word_type* begin, word_type* end, size_type logical_bytes_length);
+    NALCHI_API void reset_with(word_type* begin, word_type* end, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a word begin pointer and the word length.
     /// @note This function resets to the new buffer @b without flushing to your previous buffer, \n
@@ -279,17 +279,17 @@ public:
     /// @param words_length Number of words in the buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial write to the final word.
-    void reset_with(word_type* begin, size_type words_length, size_type logical_bytes_length);
+    NALCHI_API void reset_with(word_type* begin, size_type words_length, size_type logical_bytes_length);
 
     /// @brief Flushes the last remaining bytes on the internal scratch buffer to your buffer.
     /// @note This function must be only called when you're done writing. \n
     /// Any attempt to write more data after calling this function will set the fail flag and write nothing.
     /// @return The stream itself.
-    auto flush_final() -> bit_stream_writer&;
+    NALCHI_API auto flush_final() -> bit_stream_writer&;
 
     /// @brief Checks if `flush_final()` has been called or not.
     /// @return Whether the `flush_final()` has been called or not.
-    bool flushed() const
+    NALCHI_API bool flushed() const
     {
         return _final_flushed;
     }
@@ -301,7 +301,7 @@ public:
     /// @param data Pointer to the arbitrary data.
     /// @param size Size in bytes of the data.
     /// @return The stream itself.
-    auto write(const void* data, size_type size) -> bit_stream_writer&;
+    NALCHI_API auto write(const void* data, size_type size) -> bit_stream_writer&;
 
     /// @brief Writes an integral value to the bit stream.
     /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
@@ -334,12 +334,12 @@ public:
     /// @brief Writes a float value to the bit stream.
     /// @param data Data to write.
     /// @return The stream itself.
-    auto write(float data) -> bit_stream_writer&;
+    NALCHI_API auto write(float data) -> bit_stream_writer&;
 
     /// @brief Writes a double value to the bit stream.
     /// @param data Data to write.
     /// @return The stream itself.
-    auto write(double data) -> bit_stream_writer&;
+    NALCHI_API auto write(double data) -> bit_stream_writer&;
 
     /// @brief Writes a string view to the bit stream.
     /// @tparam CharT Underlying character type of `std::basic_string_view`.
@@ -530,7 +530,7 @@ private:
     }
 
 private:
-    void flush_if_scratch_overflow();
+    NALCHI_API void flush_if_scratch_overflow();
 
     /// @brief Actually flushes from the internal scratch buffer to the user buffer.
     /// @note This function flushes the internal scratch word as-is, \n
@@ -538,7 +538,7 @@ private:
     /// write some undesired additional `0` bits in the middle of your buffer. \n
     /// To avoid that, you should only call this when you're done writing everything.
     /// @return The stream itself.
-    void do_flush_word_unchecked();
+    NALCHI_API void do_flush_word_unchecked();
 };
 
 /// @brief Helper stream to read bits from your buffer.
@@ -580,34 +580,34 @@ public:
     ///
     /// This constructor can be useful if you want to set the buffer afterwards. \n
     /// To set the buffer, call `reset_with()`.
-    bit_stream_reader();
+    NALCHI_API bit_stream_reader();
 
     /// @brief Constructs a `bit_stream_reader` instance with a `std::span<word_type>` buffer.
     /// @param buffer Buffer to read bits from.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial read from the final word.
-    bit_stream_reader(std::span<const word_type> buffer, size_type logical_bytes_length);
+    NALCHI_API bit_stream_reader(std::span<const word_type> buffer, size_type logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_reader` instance with a word range.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param end Pointer to the end of a buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial read from the final word.
-    bit_stream_reader(const word_type* begin, const word_type* end, size_type logical_bytes_length);
+    NALCHI_API bit_stream_reader(const word_type* begin, const word_type* end, size_type logical_bytes_length);
 
     /// @brief Constructs a `bit_stream_reader` instance with a word begin pointer and the word length.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param words_length Number of words in the buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial read from the final word.
-    bit_stream_reader(const word_type* begin, size_type words_length, size_type logical_bytes_length);
+    NALCHI_API bit_stream_reader(const word_type* begin, size_type words_length, size_type logical_bytes_length);
 
 public:
     /// @brief Check if reading from your buffer has been failed or not.
     ///
     /// If this is `true`, all the operations for this `bit_stream_reader` is no-op.
     /// @return `true` if reading has been failed, otherwise `false`.
-    bool fail() const noexcept
+    NALCHI_API bool fail() const noexcept
     {
         return _fail;
     }
@@ -616,7 +616,7 @@ public:
     /// This is effectively same as `fail()`.
     ///
     /// If this is `true`, all the operations for this `bit_stream_reader` is no-op.
-    bool operator!() const noexcept
+    NALCHI_API bool operator!() const noexcept
     {
         return fail();
     }
@@ -625,37 +625,77 @@ public:
     /// This is effectively same as `!fail()`.
     ///
     /// If this is `false`, all the operations for this `bit_stream_reader` is no-op.
-    operator bool() const noexcept
+    NALCHI_API operator bool() const noexcept
     {
         return !fail();
     }
 
 public:
+    /// @brief Gets the number of total bytes in the stream.
+    /// @return Number of total bytes in the stream.
+    NALCHI_API auto total_bytes() const -> size_type
+    {
+        return _logical_total_bits / 8;
+    }
+
+    /// @brief Gets the number of total bits in the stream.
+    /// @return Number of total bits in the stream.
+    NALCHI_API auto total_bits() const -> size_type
+    {
+        return _logical_total_bits;
+    }
+
+    /// @brief Gets the number of used bytes in the stream.
+    /// @return Number of used bytes in the stream.
+    NALCHI_API auto used_bytes() const -> size_type;
+
+    /// @brief Gets the number of used bits in the stream.
+    /// @return Number of used bits in the stream.
+    NALCHI_API auto used_bits() const -> size_type
+    {
+        return _logical_used_bits;
+    }
+
+    /// @brief Gets the number of unused bytes in the stream.
+    /// @return Number of unused bytes in the stream.
+    NALCHI_API auto unused_bytes() const -> size_type
+    {
+        return total_bytes() - used_bytes();
+    }
+
+    /// @brief Gets the number of unused bits in the stream.
+    /// @return Number of unused bits in the stream.
+    NALCHI_API auto unused_bits() const -> size_type
+    {
+        return total_bits() - used_bits();
+    }
+
+public:
     /// @brief Restarts the stream so that it can read from the beginning again.
-    void restart();
+    NALCHI_API void restart();
 
     /// @brief Resets the stream so that it no longer holds your buffer anymore.
-    void reset();
+    NALCHI_API void reset();
 
     /// @brief Resets the stream with a `std::span<word_type>` buffer.
     /// @param buffer Buffer to read bits from.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial read from the final word.
-    void reset_with(std::span<const word_type> buffer, size_type logical_bytes_length);
+    NALCHI_API void reset_with(std::span<const word_type> buffer, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a word range.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param end Pointer to the end of a buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial read from the final word.
-    void reset_with(const word_type* begin, const word_type* end, size_type logical_bytes_length);
+    NALCHI_API void reset_with(const word_type* begin, const word_type* end, size_type logical_bytes_length);
 
     /// @brief Resets the stream with a word begin pointer and the word length.
     /// @param begin Pointer to the beginning of a buffer.
     /// @param words_length Number of words in the buffer.
     /// @param logical_bytes_length Number of bytes logically.
     /// This is useful if you want to only allow partial read from the final word.
-    void reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length);
+    NALCHI_API void reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length);
 
 public:
     /// @brief Reads some arbitrary data from the bit stream.
@@ -664,7 +704,7 @@ public:
     /// @param data Pointer to the arbitrary data.
     /// @param size Size in bytes of the data.
     /// @return The stream itself.
-    auto read(void* data, size_type size) -> bit_stream_reader&;
+    NALCHI_API auto read(void* data, size_type size) -> bit_stream_reader&;
 
     /// @brief Reads an integral value from the bit stream.
     /// @tparam SInt Small integer type that doesn't exceed the size of `word_type`.
@@ -697,12 +737,12 @@ public:
     /// @brief Reads a float value from the bit stream.
     /// @param data Data to read to.
     /// @return The stream itself.
-    auto read(float& data) -> bit_stream_reader&;
+    NALCHI_API auto read(float& data) -> bit_stream_reader&;
 
     /// @brief Reads a double value from the bit stream.
     /// @param data Data to read to.
     /// @return The stream itself.
-    auto read(double& data) -> bit_stream_reader&;
+    NALCHI_API auto read(double& data) -> bit_stream_reader&;
 
     /// @brief Reads a string from the bit stream.
     ///
@@ -757,7 +797,7 @@ public:
 
         // Read the length of the string.
         ssize_type len = read_string_length();
-        if (len < 0 || len > max_length)
+        if (len < 0 || static_cast<size_type>(len) > max_length)
         {
             _fail = true;
             return *this;
@@ -781,7 +821,7 @@ public:
     /// this function will return a negative value and set the fail flag.
     /// @note Be careful, if current stream position was not on the string length prefix, it might read garbage length!
     /// @return Length of `CharT` stored in it, or a negative value if length prefix is invalid.
-    auto peek_string_length() -> ssize_type;
+    NALCHI_API auto peek_string_length() -> ssize_type;
 
 private:
     /// @brief Reads the string length prefix from the current stream position.
@@ -790,7 +830,7 @@ private:
     /// this function will return a negative value and set the fail flag.
     /// @note Be careful, if current stream position was not on the string length prefix, it might read garbage length!
     /// @return Length of `CharT` stored in it, or a negative value if length prefix is invalid.
-    auto read_string_length() -> ssize_type;
+    NALCHI_API auto read_string_length() -> ssize_type;
 
     /// @brief Actually reads an integral value from the bit stream.
     /// @tparam Checked Whether the checks are performed or not.
@@ -945,7 +985,7 @@ private:
     }
 
 private:
-    void do_fetch_word_unchecked();
+    NALCHI_API void do_fetch_word_unchecked();
 };
 
 } // namespace nalchi

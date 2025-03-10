@@ -22,37 +22,37 @@ static_assert(8 * GNS_MAX_MSG_RECV_SIZE <= std::numeric_limits<bit_stream_writer
 
 } // namespace
 
-bit_stream_writer::bit_stream_writer()
+NALCHI_API bit_stream_writer::bit_stream_writer()
 {
     reset();
 }
 
-bit_stream_writer::bit_stream_writer(shared_payload buffer, size_type logical_bytes_length)
+NALCHI_API bit_stream_writer::bit_stream_writer(shared_payload buffer, size_type logical_bytes_length)
 {
     reset_with(buffer, logical_bytes_length);
 }
 
-bit_stream_writer::bit_stream_writer(std::span<word_type> buffer, size_type logical_bytes_length)
+NALCHI_API bit_stream_writer::bit_stream_writer(std::span<word_type> buffer, size_type logical_bytes_length)
 {
     reset_with(buffer, logical_bytes_length);
 }
 
-bit_stream_writer::bit_stream_writer(word_type* begin, word_type* end, size_type logical_bytes_length)
+NALCHI_API bit_stream_writer::bit_stream_writer(word_type* begin, word_type* end, size_type logical_bytes_length)
 {
     reset_with(begin, end, logical_bytes_length);
 }
 
-bit_stream_writer::bit_stream_writer(word_type* begin, size_type words_length, size_type logical_bytes_length)
+NALCHI_API bit_stream_writer::bit_stream_writer(word_type* begin, size_type words_length, size_type logical_bytes_length)
 {
     reset_with(begin, words_length, logical_bytes_length);
 }
 
-auto bit_stream_writer::used_bytes() const -> size_type
+NALCHI_API auto bit_stream_writer::used_bytes() const -> size_type
 {
     return ceil_to_multiple_of<8>(used_bits()) / 8;
 }
 
-void bit_stream_writer::restart()
+NALCHI_API void bit_stream_writer::restart()
 {
     _scratch = 0;
 
@@ -65,7 +65,7 @@ void bit_stream_writer::restart()
     _final_flushed = false;
 }
 
-void bit_stream_writer::reset()
+NALCHI_API void bit_stream_writer::reset()
 {
     _words = decltype(_words)();
     _logical_total_bits = 0;
@@ -74,7 +74,7 @@ void bit_stream_writer::reset()
     restart();
 }
 
-void bit_stream_writer::reset_with(shared_payload buffer, size_type logical_bytes_length)
+NALCHI_API void bit_stream_writer::reset_with(shared_payload buffer, size_type logical_bytes_length)
 {
     buffer.set_used_bit_stream(true);
 
@@ -83,7 +83,7 @@ void bit_stream_writer::reset_with(shared_payload buffer, size_type logical_byte
         logical_bytes_length);
 }
 
-void bit_stream_writer::reset_with(std::span<word_type> buffer, size_type logical_bytes_length)
+NALCHI_API void bit_stream_writer::reset_with(std::span<word_type> buffer, size_type logical_bytes_length)
 {
     _words = buffer;
     _logical_total_bits = 8 * logical_bytes_length;
@@ -92,17 +92,17 @@ void bit_stream_writer::reset_with(std::span<word_type> buffer, size_type logica
     restart();
 }
 
-void bit_stream_writer::reset_with(word_type* begin, word_type* end, size_type logical_bytes_length)
+NALCHI_API void bit_stream_writer::reset_with(word_type* begin, word_type* end, size_type logical_bytes_length)
 {
     reset_with(std::span<word_type>(begin, end), logical_bytes_length);
 }
 
-void bit_stream_writer::reset_with(word_type* begin, size_type words_length, size_type logical_bytes_length)
+NALCHI_API void bit_stream_writer::reset_with(word_type* begin, size_type words_length, size_type logical_bytes_length)
 {
     reset_with(std::span<word_type>(begin, words_length), logical_bytes_length);
 }
 
-auto bit_stream_writer::flush_final() -> bit_stream_writer&
+NALCHI_API auto bit_stream_writer::flush_final() -> bit_stream_writer&
 {
     NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
 
@@ -119,7 +119,7 @@ auto bit_stream_writer::flush_final() -> bit_stream_writer&
     return *this;
 }
 
-auto bit_stream_writer::write(const void* data, size_type size) -> bit_stream_writer&
+NALCHI_API auto bit_stream_writer::write(const void* data, size_type size) -> bit_stream_writer&
 {
     NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
     NALCHI_BIT_STREAM_WRITER_FAIL_IF_WRITE_AFTER_FINAL_FLUSH(*this);
@@ -140,7 +140,7 @@ auto bit_stream_writer::write(const void* data, size_type size) -> bit_stream_wr
     return *this;
 }
 
-auto bit_stream_writer::write(float data) -> bit_stream_writer&
+NALCHI_API auto bit_stream_writer::write(float data) -> bit_stream_writer&
 {
     // Use the reinterpreted value of `data` as an u32
     std::uint32_t converted = std::bit_cast<std::uint32_t>(data);
@@ -148,7 +148,7 @@ auto bit_stream_writer::write(float data) -> bit_stream_writer&
     return write(converted);
 }
 
-auto bit_stream_writer::write(double data) -> bit_stream_writer&
+NALCHI_API auto bit_stream_writer::write(double data) -> bit_stream_writer&
 {
     // Use the reinterpreted value of `data` as an u64
     std::uint64_t converted = std::bit_cast<std::uint64_t>(data);
@@ -156,13 +156,13 @@ auto bit_stream_writer::write(double data) -> bit_stream_writer&
     return write(converted);
 }
 
-void bit_stream_writer::flush_if_scratch_overflow()
+NALCHI_API void bit_stream_writer::flush_if_scratch_overflow()
 {
     if (_scratch_index >= static_cast<int>(8 * sizeof(word_type)))
         do_flush_word_unchecked();
 }
 
-void bit_stream_writer::do_flush_word_unchecked()
+NALCHI_API void bit_stream_writer::do_flush_word_unchecked()
 {
     // Get the lower word bits to flush.
     word_type word = static_cast<word_type>((_scratch << (8 * sizeof(word_type))) >> (8 * sizeof(word_type)));
@@ -179,27 +179,32 @@ void bit_stream_writer::do_flush_word_unchecked()
     _scratch_index = std::max(0, _scratch_index - static_cast<int>(8 * sizeof(word_type)));
 }
 
-bit_stream_reader::bit_stream_reader()
+NALCHI_API bit_stream_reader::bit_stream_reader()
 {
     reset();
 }
 
-bit_stream_reader::bit_stream_reader(std::span<const word_type> buffer, size_type logical_bytes_length)
+NALCHI_API bit_stream_reader::bit_stream_reader(std::span<const word_type> buffer, size_type logical_bytes_length)
 {
     reset_with(buffer, logical_bytes_length);
 }
 
-bit_stream_reader::bit_stream_reader(const word_type* begin, const word_type* end, size_type logical_bytes_length)
+NALCHI_API bit_stream_reader::bit_stream_reader(const word_type* begin, const word_type* end, size_type logical_bytes_length)
 {
     reset_with(begin, end, logical_bytes_length);
 }
 
-bit_stream_reader::bit_stream_reader(const word_type* begin, size_type words_length, size_type logical_bytes_length)
+NALCHI_API bit_stream_reader::bit_stream_reader(const word_type* begin, size_type words_length, size_type logical_bytes_length)
 {
     reset_with(begin, words_length, logical_bytes_length);
 }
 
-void bit_stream_reader::restart()
+NALCHI_API auto bit_stream_reader::used_bytes() const -> size_type
+{
+    return ceil_to_multiple_of<8>(used_bits()) / 8;
+}
+
+NALCHI_API void bit_stream_reader::restart()
 {
     _scratch = 0;
 
@@ -210,7 +215,7 @@ void bit_stream_reader::restart()
     _fail = _init_fail;
 }
 
-void bit_stream_reader::reset()
+NALCHI_API void bit_stream_reader::reset()
 {
     _words = decltype(_words)();
     _logical_total_bits = 0;
@@ -219,7 +224,7 @@ void bit_stream_reader::reset()
     restart();
 }
 
-void bit_stream_reader::reset_with(std::span<const word_type> buffer, size_type logical_bytes_length)
+NALCHI_API void bit_stream_reader::reset_with(std::span<const word_type> buffer, size_type logical_bytes_length)
 {
     _words = buffer;
     _logical_total_bits = 8 * logical_bytes_length;
@@ -228,17 +233,17 @@ void bit_stream_reader::reset_with(std::span<const word_type> buffer, size_type 
     restart();
 }
 
-void bit_stream_reader::reset_with(const word_type* begin, const word_type* end, size_type logical_bytes_length)
+NALCHI_API void bit_stream_reader::reset_with(const word_type* begin, const word_type* end, size_type logical_bytes_length)
 {
     reset_with(std::span<const word_type>(begin, end), logical_bytes_length);
 }
 
-void bit_stream_reader::reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length)
+NALCHI_API void bit_stream_reader::reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length)
 {
     reset_with(std::span<const word_type>(begin, words_length), logical_bytes_length);
 }
 
-auto bit_stream_reader::read(void* data, size_type size) -> bit_stream_reader&
+NALCHI_API auto bit_stream_reader::read(void* data, size_type size) -> bit_stream_reader&
 {
     NALCHI_BIT_STREAM_RETURN_IF_STREAM_ALREADY_FAILED(*this);
 
@@ -258,7 +263,7 @@ auto bit_stream_reader::read(void* data, size_type size) -> bit_stream_reader&
     return *this;
 }
 
-auto bit_stream_reader::read(float& data) -> bit_stream_reader&
+NALCHI_API auto bit_stream_reader::read(float& data) -> bit_stream_reader&
 {
     // Read value as `u32`
     std::uint32_t raw;
@@ -271,7 +276,7 @@ auto bit_stream_reader::read(float& data) -> bit_stream_reader&
     return *this;
 }
 
-auto bit_stream_reader::read(double& data) -> bit_stream_reader&
+NALCHI_API auto bit_stream_reader::read(double& data) -> bit_stream_reader&
 {
     // Read value as `u64`
     std::uint64_t raw;
@@ -284,7 +289,7 @@ auto bit_stream_reader::read(double& data) -> bit_stream_reader&
     return *this;
 }
 
-auto bit_stream_reader::peek_string_length() -> ssize_type
+NALCHI_API auto bit_stream_reader::peek_string_length() -> ssize_type
 {
     // Back up previous stream states
     const auto prev_scratch = _scratch;
@@ -304,7 +309,7 @@ auto bit_stream_reader::peek_string_length() -> ssize_type
     return result;
 }
 
-auto bit_stream_reader::read_string_length() -> ssize_type
+NALCHI_API auto bit_stream_reader::read_string_length() -> ssize_type
 {
     ssize_type result = -1;
 
@@ -350,7 +355,7 @@ auto bit_stream_reader::read_string_length() -> ssize_type
     return result;
 }
 
-void bit_stream_reader::do_fetch_word_unchecked()
+NALCHI_API void bit_stream_reader::do_fetch_word_unchecked()
 {
     // Get the word to load to scratch.
     word_type word = _words[_words_index++];
