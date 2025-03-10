@@ -12,20 +12,25 @@ NALCHI_FLAT_API void nalchi_shared_payload_force_deallocate(nalchi::shared_paylo
     return nalchi::shared_payload::force_deallocate(payload);
 }
 
-NALCHI_FLAT_API auto nalchi_shared_payload_get_size(const nalchi::shared_payload payload)
+NALCHI_FLAT_API auto nalchi_shared_payload_size(const nalchi::shared_payload payload)
     -> nalchi::shared_payload::alloc_size_t
 {
-    return payload.get_size();
+    return payload.size();
 }
 
-NALCHI_FLAT_API auto nalchi_shared_payload_get_aligned_size(const nalchi::shared_payload payload)
+NALCHI_FLAT_API auto nalchi_shared_payload_word_ceiled_size(const nalchi::shared_payload payload)
     -> nalchi::shared_payload::alloc_size_t
 {
-    return payload.get_aligned_size();
+    return payload.word_ceiled_size();
 }
 
-NALCHI_FLAT_API auto nalchi_shared_payload_get_internal_alloc_size(const nalchi::shared_payload payload)
+NALCHI_FLAT_API auto nalchi_shared_payload_internal_alloc_size(const nalchi::shared_payload payload)
     -> nalchi::shared_payload::alloc_size_t
 {
-    return payload.get_internal_alloc_size();
+    return payload.internal_alloc_size();
+}
+
+NALCHI_FLAT_API bool nalchi_shared_payload_used_bit_stream(const nalchi::shared_payload payload)
+{
+    return payload.used_bit_stream();
 }

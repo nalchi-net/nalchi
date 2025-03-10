@@ -17,8 +17,17 @@ namespace nalchi
 
 namespace
 {
+
 constexpr auto GNS_MAX_MSG_SEND_SIZE = k_cbMaxSteamNetworkingSocketsMessageSizeSend;
-}
+
+constexpr shared_payload::alloc_size_t BIT_STREAM_USED_FLAG_MASK = shared_payload::alloc_size_t(1)
+                                                                   << (8 * sizeof(shared_payload::alloc_size_t) - 1);
+constexpr shared_payload::alloc_size_t PAYLOAD_SIZE_MASK = ~BIT_STREAM_USED_FLAG_MASK;
+
+static_assert(GNS_MAX_MSG_SEND_SIZE <= PAYLOAD_SIZE_MASK,
+              "Not enough space to store bit stream used flag in msb of payload size field");
+
+} // namespace
 
 NALCHI_API shared_payload shared_payload::allocate(alloc_size_t size)
 {
@@ -29,9 +38,10 @@ NALCHI_API shared_payload shared_payload::allocate(alloc_size_t size)
         // Alignment should be the max of:
         // * `bit_stream_writer`'s word write measure, to avoid unaligned write to payload
         // * atomic reference count, to avoid tearing of ref count
+        // * payload size + bit stream used flag, to avoid tearing of it
         constexpr std::size_t ALLOC_ALIGNMENT = std::max({
             alignof(ref_count_t),                  // to store ref count
-            alignof(alloc_size_t),                 // to store requested payload size
+            alignof(alloc_size_t),                 // to store requested payload size + bit stream used flag
             alignof(bit_stream_writer::word_type), // to store payload data
         });
 
@@ -41,7 +51,7 @@ NALCHI_API shared_payload shared_payload::allocate(alloc_size_t size)
         static_assert(sizeof(ref_count_t) % alignof(alloc_size_t) == 0);
         static_assert((sizeof(ref_count_t) + sizeof(alloc_size_t)) % alignof(bit_stream_writer::word_type) == 0);
 
-        // Calculate the required space for (ref count + alloc size + actual payload)
+        // Calculate the required space for (ref count + payload size & bit stream used flag + actual payload)
         // Actual payload size should be ceiled to `bit_stream_writer`'s word's multiple,
         // to avoid buffer overrun on last scratch write in `bit_stream_writer`.
         const alloc_size_t alloc_size =
@@ -64,7 +74,7 @@ NALCHI_API shared_payload shared_payload::allocate(alloc_size_t size)
             ((void)ref_count); // Suppress the unused variable warning.
 #endif
 
-            // Use the second space to store requested payload size.
+            // Use the second space to store requested payload size + bit stream used flag.
             alloc_size_t* req_payload_len =
                 reinterpret_cast<alloc_size_t*>((std::byte*)raw_space + sizeof(ref_count_t));
             *req_payload_len = size;
@@ -79,31 +89,78 @@ NALCHI_API shared_payload shared_payload::allocate(alloc_size_t size)
 
 NALCHI_API void shared_payload::force_deallocate(shared_payload payload)
 {
-    // Ref count should exist before the payload, before the alloc size.
-    ref_count_t* ref_count =
-        reinterpret_cast<ref_count_t*>((std::byte*)payload.ptr - sizeof(alloc_size_t) - sizeof(ref_count_t));
+    // Get the hidden ref count
+    ref_count_t* ref_count_ptr = &payload.ref_count();
 
     // Destroy the ref count. (Is this actually necessary?)
-    std::destroy_at(ref_count);
+    std::destroy_at(ref_count_ptr);
 
     // Free the space (ref count is the real alloc address)
-    std::free(ref_count);
+    std::free(ref_count_ptr);
 }
 
-NALCHI_API auto shared_payload::get_size() const -> alloc_size_t
+NALCHI_API auto shared_payload::size() const -> alloc_size_t
 {
-    // Get the hidden requested payload size field
+    // Get the hidden requested payload size + bit stream used flag
+    const alloc_size_t raw_field = payload_size_and_bit_stream_used_flag();
+
+    // Filter the payload size with the mask
+    return raw_field & PAYLOAD_SIZE_MASK;
+}
+
+NALCHI_API auto shared_payload::word_ceiled_size() const -> alloc_size_t
+{
+    return ceil_to_multiple_of<sizeof(bit_stream_writer::word_type)>(size());
+}
+
+NALCHI_API auto shared_payload::internal_alloc_size() const -> alloc_size_t
+{
+    return static_cast<alloc_size_t>(sizeof(ref_count_t) + sizeof(alloc_size_t) + word_ceiled_size());
+}
+
+bool shared_payload::used_bit_stream() const
+{
+    // Get the hidden requested payload size + bit stream used flag
+    const alloc_size_t raw_field = payload_size_and_bit_stream_used_flag();
+
+    // Filter the bit stream used flag with the mask
+    return (raw_field & BIT_STREAM_USED_FLAG_MASK) != 0;
+}
+
+void shared_payload::set_used_bit_stream(bool used)
+{
+    // Get the hidden requested payload size + bit stream used flag
+    alloc_size_t& raw_field = payload_size_and_bit_stream_used_flag();
+
+    // Set the bit stream used flag part
+    if (used)
+        raw_field |= BIT_STREAM_USED_FLAG_MASK;
+    else
+        raw_field &= ~BIT_STREAM_USED_FLAG_MASK;
+}
+
+auto shared_payload::ref_count() -> ref_count_t&
+{
+    // Ref count should exist before the payload, before the payload size field.
+    return *reinterpret_cast<ref_count_t*>((std::byte*)ptr - sizeof(alloc_size_t) - sizeof(ref_count_t));
+}
+
+auto shared_payload::ref_count() const -> const ref_count_t&
+{
+    // Ref count should exist before the payload, before the payload size field.
+    return *reinterpret_cast<ref_count_t*>((std::byte*)ptr - sizeof(alloc_size_t) - sizeof(ref_count_t));
+}
+
+auto shared_payload::payload_size_and_bit_stream_used_flag() -> alloc_size_t&
+{
+    // This field should exist right before the payload.
     return *reinterpret_cast<alloc_size_t*>((std::byte*)ptr - sizeof(alloc_size_t));
 }
 
-NALCHI_API auto shared_payload::get_aligned_size() const -> alloc_size_t
+auto shared_payload::payload_size_and_bit_stream_used_flag() const -> const alloc_size_t&
 {
-    return ceil_to_multiple_of<sizeof(bit_stream_writer::word_type)>(get_size());
-}
-
-NALCHI_API auto shared_payload::get_internal_alloc_size() const -> alloc_size_t
-{
-    return static_cast<alloc_size_t>(sizeof(ref_count_t) + sizeof(alloc_size_t) + get_aligned_size());
+    // This field should exist right before the payload.
+    return *reinterpret_cast<const alloc_size_t*>((std::byte*)ptr - sizeof(alloc_size_t));
 }
 
 } // namespace nalchi

@@ -38,22 +38,44 @@ struct shared_payload
 
     /// @brief Gets the requested allocation size of the payload.
     /// @return Size of the payload in bytes.
-    NALCHI_API auto get_size() const -> alloc_size_t;
+    NALCHI_API auto size() const -> alloc_size_t;
 
-    /// @brief Gets the aligned size of the payload,
+    /// @brief Gets the payload size that's ceiled to `bit_stream_writer::word_size`,
     /// which is guaranteed to be safe to access.
     ///
-    /// This size can be bigger than the requested allocation size. \n
+    /// As this size is ceiled to multiple of `bit_stream_writer::word_size`,
+    /// it can be bigger than the requested allocation size. \n
     /// This is to maintain compatibility with `bit_stream_writer`.
     /// @return Size of the payload in bytes.
-    NALCHI_API auto get_aligned_size() const -> alloc_size_t;
+    NALCHI_API auto word_ceiled_size() const -> alloc_size_t;
 
     /// @brief Gets the actual allocated size,
     /// which includes hidden ref count & size fields.
     ///
     /// This is meant to be only used by the internal API.
     /// @return Size of the allocated space in bytes.
-    NALCHI_API auto get_internal_alloc_size() const -> alloc_size_t;
+    NALCHI_API auto internal_alloc_size() const -> alloc_size_t;
+
+    /// @brief Check if this payload used `bit_stream_writer` to fill its content.
+    ///
+    /// If this is `true`, the send size will be automatically
+    /// ceiled to multiple of `bit_stream_reader::word_size` when you send it. \n
+    /// This is to maintain compatibility with `bit_stream_reader` on the receiving side.
+    /// @return Whether the payload used `bit_stream_writer` or not.
+    NALCHI_API bool used_bit_stream() const;
+
+private:
+    friend class bit_stream_writer;
+
+    /// @brief Set the flag indicating if this payload used `bit_stream_writer` to fill its content.
+    void set_used_bit_stream(bool);
+
+private:
+    auto ref_count() -> ref_count_t&;
+    auto ref_count() const -> const ref_count_t&;
+
+    auto payload_size_and_bit_stream_used_flag() -> alloc_size_t&;
+    auto payload_size_and_bit_stream_used_flag() const -> const alloc_size_t&;
 };
 
 } // namespace nalchi
