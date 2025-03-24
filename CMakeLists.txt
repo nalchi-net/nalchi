@@ -3,7 +3,7 @@ project(nalchi VERSION 0.0.1)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS FALSE)
 
@@ -13,7 +13,7 @@ if(NOT USE_STEAMWORKS)
     option(USE_STEAMWEBRTC "Build WebRTC to get ICE support for P2P for stand-alone GameNetworkingSockets" FALSE)
 endif()
 
-# Set GameNetworkingSockets option
+# Set GameNetworkingSockets options
 if(BUILD_SHARED_LIBS)
     set(BUILD_STATIC_LIB FALSE)
     set(BUILD_SHARED_LIB TRUE)
@@ -21,6 +21,10 @@ else()
     set(BUILD_STATIC_LIB TRUE)
     set(BUILD_SHARED_LIB FALSE)
 endif()
+
+# nalchi options
+option(NALCHI_BUILD_TESTS "Build nalchi tests" FALSE)
+option(NALCHI_ASAN "Enable AddressSanitizer for nalchi" FALSE)
 
 # nalchi target
 add_library(nalchi)
@@ -41,12 +45,31 @@ else()
     target_compile_definitions(nalchi PUBLIC NALCHI_BUILD_STATIC)
 endif()
 
-# Compiler warnings
-target_compile_options(nalchi PRIVATE
-    $<$<CXX_COMPILER_ID:MSVC>:/W4>
+# Compiler options
+set(nalchi_compile_options
+    $<$<CXX_COMPILER_ID:MSVC>:/W4 /Zc:preprocessor /Zc:__cplusplus>
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
         -Wall -Wextra -Wpedantic>
 )
+set(nalchi_link_options "")
+
+if(NALCHI_ASAN)
+    set(nalchi_compile_options
+        ${nalchi_compile_options}
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+        -fsanitize=address>
+        $<$<CXX_COMPILER_ID:MSVC>:/fsanitize=address>
+    )
+    set(nalchi_link_options
+        ${nalchi_link_options}
+        $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>:
+        -fsanitize=address>
+        $<$<CXX_COMPILER_ID:MSVC>:/INCREMENTAL:NO /DEBUG>
+    )
+endif()
+
+target_compile_options(nalchi PRIVATE ${nalchi_compile_options})
+target_link_options(nalchi PRIVATE ${nalchi_link_options})
 
 # nalchi public headers
 target_sources(nalchi
@@ -55,15 +78,26 @@ target_sources(nalchi
     BASE_DIRS include
     TYPE HEADERS
     FILES
-        include/nalchi/export.h
+        include/nalchi/export.hpp
+        include/nalchi/type_traits.hpp
+        include/nalchi/concepts.hpp
         include/nalchi/server.hpp
+        include/nalchi/shared_payload.hpp
+        include/nalchi/shared_payload_flat.hpp
+        include/nalchi/bit_stream.hpp
+        include/nalchi/bit_stream_flat.hpp
 )
 
 # nalchi sources
 target_sources(nalchi PRIVATE
     src/server.cpp
+    src/shared_payload.cpp
+    src/shared_payload_flat.cpp
+    src/bit_stream.cpp
+    src/bit_stream_flat.cpp
 )
 
+# Steamworks SDK or stand-alone GameNetworkingSockets?
 if(USE_STEAMWORKS)
     set(STEAMWORKS_REDIST_BIN_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/redistributable_bin)
     set(STEAMWORKS_PUBLIC_LIB_DIR ${CMAKE_CURRENT_SOURCE_DIR}/sdk/public/steam/lib)
@@ -129,6 +163,11 @@ else() # Open source GameNetworkingSockets
     else()
         target_link_libraries(nalchi PUBLIC GameNetworkingSockets_s)
     endif()
+endif()
+
+# tests
+if(NALCHI_BUILD_TESTS)
+    add_subdirectory(tests)
 endif()
 
 # Copy dependencies
