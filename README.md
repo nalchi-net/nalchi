@@ -2,7 +2,7 @@
 
 <img align="right" src="https://raw.githubusercontent.com/nalchi-net/nalchi/refs/heads/main/doc/nalchi.png" width="100px">
 
-[nalchi](https://github.com/nalchi-net/nalchi) is a lightweight wrapper around [ValveSoftware/GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets).
+[nalchi](https://github.com/nalchi-net/nalchi) aims to provide utilities for efficient message sending over [ValveSoftware/GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets).
 
 It supports either building with the stand-alone version of GameNetworkingSockets or Steamworks SDK version of it.
 
