@@ -139,6 +139,44 @@ void shared_payload::set_used_bit_stream(bool used)
         raw_field &= ~BIT_STREAM_USED_FLAG_MASK;
 }
 
+void shared_payload::add_to_message(SteamNetworkingMessage_t* msg, int logical_bytes_length)
+{
+    // If used bit stream, ceil the send size to `bit_stream_reader::word_type`.
+    // Otherwise, the receiving side might read out-of-bound memory.
+    if (used_bit_stream())
+        logical_bytes_length = ceil_to_multiple_of<sizeof(bit_stream_reader::word_type)>(logical_bytes_length);
+
+    increase_ref_count();
+
+    // Add the payload to the message
+    msg->m_pData = ptr;
+    msg->m_cbSize = logical_bytes_length;
+    msg->m_pfnFreeData = decrease_ref_count_and_deallocate_if_zero_callback;
+}
+
+void shared_payload::decrease_ref_count_and_deallocate_if_zero_callback(SteamNetworkingMessage_t* msg)
+{
+    shared_payload payload{.ptr = msg->m_pData};
+
+    payload.decrease_ref_count_and_deallocate_if_zero();
+}
+
+void shared_payload::increase_ref_count()
+{
+    ref_count_t* ref_count_ptr = &ref_count();
+
+    ref_count_ptr->fetch_add(1, std::memory_order_relaxed);
+}
+
+void shared_payload::decrease_ref_count_and_deallocate_if_zero()
+{
+    ref_count_t* ref_count_ptr = &ref_count();
+
+    // if this was the last reference, deallocate self
+    if (1 == ref_count_ptr->fetch_sub(1, std::memory_order_relaxed))
+        force_deallocate(*this);
+}
+
 auto shared_payload::ref_count() -> ref_count_t&
 {
     // Ref count should exist before the payload, before the payload size field.

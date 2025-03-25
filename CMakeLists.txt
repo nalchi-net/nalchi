@@ -79,9 +79,10 @@ target_sources(nalchi
     TYPE HEADERS
     FILES
         include/nalchi/export.hpp
-        include/nalchi/type_traits.hpp
-        include/nalchi/concepts.hpp
-        include/nalchi/server.hpp
+        include/nalchi/make_unsigned_allow_bool.hpp
+        include/nalchi/character.hpp
+        include/nalchi/socket_extensions.hpp
+        include/nalchi/socket_extensions_flat.hpp
         include/nalchi/shared_payload.hpp
         include/nalchi/shared_payload_flat.hpp
         include/nalchi/bit_stream.hpp
@@ -90,7 +91,8 @@ target_sources(nalchi
 
 # nalchi sources
 target_sources(nalchi PRIVATE
-    src/server.cpp
+    src/socket_extensions.cpp
+    src/socket_extensions_flat.cpp
     src/shared_payload.cpp
     src/shared_payload_flat.cpp
     src/bit_stream.cpp

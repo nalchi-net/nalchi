@@ -1,10 +1,9 @@
 #pragma once
 
+#include "nalchi/character.hpp"
 #include "nalchi/export.hpp"
-
-#include "nalchi/concepts.hpp"
+#include "nalchi/make_unsigned_allow_bool.hpp"
 #include "nalchi/shared_payload.hpp"
-#include "nalchi/type_traits.hpp"
 
 #include <algorithm>
 #include <bit>

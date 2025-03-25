@@ -1,9 +1,11 @@
 #pragma once
 
+#include "nalchi/export.hpp"
+
 #include <atomic>
 #include <cstdint>
 
-#include "nalchi/export.hpp"
+struct SteamNetworkingMessage_t;
 
 namespace nalchi
 {
@@ -69,6 +71,16 @@ private:
 
     /// @brief Set the flag indicating if this payload used `bit_stream_writer` to fill its content.
     void set_used_bit_stream(bool);
+
+private:
+    friend class socket_extensions;
+
+    void add_to_message(SteamNetworkingMessage_t* msg, int logical_bytes_length);
+
+    void increase_ref_count();
+    void decrease_ref_count_and_deallocate_if_zero();
+
+    static void decrease_ref_count_and_deallocate_if_zero_callback(SteamNetworkingMessage_t* msg);
 
 private:
     auto ref_count() -> ref_count_t&;
