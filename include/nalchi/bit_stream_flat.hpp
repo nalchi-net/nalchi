@@ -140,6 +140,11 @@ NALCHI_FLAT_API bool nalchi_bit_stream_writer_flushed(const nalchi::bit_stream_w
 NALCHI_FLAT_API bool nalchi_bit_stream_writer_write_bytes(nalchi::bit_stream_writer* self, const void* data,
                                                           nalchi::bit_stream_writer::size_type size);
 
+/// @brief Writes a bool value to the bit stream.
+/// @param data Data to write.
+/// @return `true` if writing has been successful, otherwise `false`.
+NALCHI_FLAT_API bool nalchi_bit_stream_writer_write_bool(nalchi::bit_stream_writer* self, bool data);
+
 /// @brief Writes a `std::int8_t` value to the bit stream.
 /// @param data Data to write.
 /// @param min Minimum value allowed for @p data.
@@ -334,6 +339,11 @@ NALCHI_FLAT_API void nalchi_bit_stream_reader_reset_with_word_ptr_and_length(
 /// @return `true` if reading has been successful, otherwise `false`.
 NALCHI_FLAT_API bool nalchi_bit_stream_reader_read_bytes(nalchi::bit_stream_reader* self, void* data,
                                                          nalchi::bit_stream_reader::size_type size);
+
+/// @brief Reads a bool value from the bit stream.
+/// @param data Data to read to.
+/// @return `true` if reading has been successful, otherwise `false`.
+NALCHI_FLAT_API bool nalchi_bit_stream_reader_read_bool(nalchi::bit_stream_reader* self, bool* data);
 
 /// @brief Reads a `std::int8_t` value from the bit stream.
 /// @param data Data to read to.

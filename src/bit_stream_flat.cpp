@@ -118,6 +118,11 @@ NALCHI_FLAT_API bool nalchi_bit_stream_writer_write_bytes(nalchi::bit_stream_wri
     return self->write(data, size);
 }
 
+NALCHI_FLAT_API bool nalchi_bit_stream_writer_write_bool(nalchi::bit_stream_writer* self, bool data)
+{
+    return self->write(data);
+}
+
 NALCHI_FLAT_API bool nalchi_bit_stream_writer_write_s8(nalchi::bit_stream_writer* self, std::int8_t data,
                                                        std::int8_t min, std::int8_t max)
 {
@@ -294,6 +299,11 @@ NALCHI_FLAT_API bool nalchi_bit_stream_reader_read_bytes(nalchi::bit_stream_read
                                                          nalchi::bit_stream_reader::size_type size)
 {
     return self->read(data, size);
+}
+
+NALCHI_FLAT_API bool nalchi_bit_stream_reader_read_bool(nalchi::bit_stream_reader* self, bool* data)
+{
+    return self->read(*data);
 }
 
 NALCHI_FLAT_API bool nalchi_bit_stream_reader_read_s8(nalchi::bit_stream_reader* self, std::int8_t* data,
