@@ -168,6 +168,12 @@ public:
     NALCHI_API bit_stream_writer(word_type* begin, size_type words_length, size_type logical_bytes_length);
 
 public:
+    /// @brief Force set the fail flag.
+    NALCHI_API void set_fail()
+    {
+        _fail = true;
+    }
+
     /// @brief Check if writing to your buffer has been failed or not.
     ///
     /// If this is `true`, all the operations for this `bit_stream_writer` is no-op.
@@ -177,7 +183,7 @@ public:
         return _fail;
     }
 
-    /// @brief Check if there was no error in the writing to your buffer. \n
+    /// @brief Check if there was an error in the writing to your buffer. \n
     /// This is effectively same as `fail()`.
     ///
     /// If this is `true`, all the operations for this `bit_stream_writer` is no-op.
@@ -186,7 +192,7 @@ public:
         return fail();
     }
 
-    /// @brief Check if there was an error in the writing to your buffer. \n
+    /// @brief Check if there was no error in the writing to your buffer. \n
     /// This is effectively same as `!fail()`.
     ///
     /// If this is `false`, all the operations for this `bit_stream_writer` is no-op.
@@ -602,6 +608,12 @@ public:
     NALCHI_API bit_stream_reader(const word_type* begin, size_type words_length, size_type logical_bytes_length);
 
 public:
+    /// @brief Force set the fail flag.
+    NALCHI_API void set_fail()
+    {
+        _fail = true;
+    }
+
     /// @brief Check if reading from your buffer has been failed or not.
     ///
     /// If this is `true`, all the operations for this `bit_stream_reader` is no-op.
@@ -611,7 +623,7 @@ public:
         return _fail;
     }
 
-    /// @brief Check if there was no error in the reading to your buffer. \n
+    /// @brief Check if there was an error in the reading to your buffer. \n
     /// This is effectively same as `fail()`.
     ///
     /// If this is `true`, all the operations for this `bit_stream_reader` is no-op.
@@ -620,7 +632,7 @@ public:
         return fail();
     }
 
-    /// @brief Check if there was an error in the reading to your buffer. \n
+    /// @brief Check if there was no error in the reading to your buffer. \n
     /// This is effectively same as `!fail()`.
     ///
     /// If this is `false`, all the operations for this `bit_stream_reader` is no-op.

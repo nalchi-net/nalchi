@@ -43,6 +43,9 @@ NALCHI_FLAT_API nalchi::bit_stream_writer* nalchi_bit_stream_writer_construct_wi
 /// @brief Destroys the `bit_stream_writer` instance.
 NALCHI_FLAT_API void nalchi_bit_stream_writer_destroy(nalchi::bit_stream_writer* self);
 
+/// @brief Force set the fail flag.
+NALCHI_FLAT_API void nalchi_bit_stream_writer_set_fail(nalchi::bit_stream_writer* self);
+
 /// @brief Check if writing to your buffer has been failed or not.
 ///
 /// If this is `true`, all the operations for this `bit_stream_writer` is no-op.
@@ -270,6 +273,9 @@ NALCHI_FLAT_API nalchi::bit_stream_reader* nalchi_bit_stream_reader_construct_wi
 
 /// @brief Destroys the `bit_stream_reader` instance.
 NALCHI_FLAT_API void nalchi_bit_stream_reader_destroy(nalchi::bit_stream_reader* self);
+
+/// @brief Force set the fail flag.
+NALCHI_FLAT_API void nalchi_bit_stream_reader_set_fail(nalchi::bit_stream_reader* self);
 
 /// @brief Check if reading from your buffer has been failed or not.
 ///

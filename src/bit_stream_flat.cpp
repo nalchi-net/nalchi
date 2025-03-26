@@ -30,6 +30,11 @@ NALCHI_FLAT_API void nalchi_bit_stream_writer_destroy(nalchi::bit_stream_writer*
     delete self;
 }
 
+NALCHI_FLAT_API void nalchi_bit_stream_writer_set_fail(nalchi::bit_stream_writer* self)
+{
+    self->set_fail();
+}
+
 NALCHI_FLAT_API bool nalchi_bit_stream_writer_fail(const nalchi::bit_stream_writer* self)
 {
     return self->fail();
@@ -228,6 +233,11 @@ NALCHI_FLAT_API nalchi::bit_stream_reader* nalchi_bit_stream_reader_construct_wi
 NALCHI_FLAT_API void nalchi_bit_stream_reader_destroy(nalchi::bit_stream_reader* self)
 {
     delete self;
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_reader_set_fail(nalchi::bit_stream_reader* self)
+{
+    self->set_fail();
 }
 
 NALCHI_FLAT_API bool nalchi_bit_stream_reader_fail(const nalchi::bit_stream_reader* self)
