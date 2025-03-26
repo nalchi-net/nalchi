@@ -12,10 +12,10 @@ namespace nalchi
 
 /// @brief Shared payload to store data to send.
 ///
-/// The payload is "shared" when it is used for multicast or broadcast.
+/// The payload is "shared" when it is used for multicast.
 /// @note As `ptr` has a hidden reference count & alloc size fields on front,
 /// you @b can't just use your own buffer as a `ptr`; \n
-/// You need to call `nalchi_allocate_shared_payload()` to allocate the `shared_payload`.
+/// You need to call `allocate()` to allocate the `shared_payload`.
 struct shared_payload
 {
     using ref_count_t = std::atomic<std::int32_t>;
