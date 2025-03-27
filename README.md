@@ -13,6 +13,12 @@
 
 See <https://nalchi-net.github.io/nalchi/> for the full API reference.
 
+## C# binding
+
+If you want to use nalchi with C#, you can with [NalchiSharp](https://github.com/nalchi-net/NalchiSharp), the C# binding of nalchi.
+
+Don't forget to bring the C++ shared libraries too, without it the binding won't work.
+
 # Build
 
 nalchi supports either building with the stand-alone version of GameNetworkingSockets or Steamworks SDK version of it.
