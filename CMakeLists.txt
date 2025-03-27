@@ -258,3 +258,32 @@ if(NOT USE_STEAMWORKS)
         install(FILES ${GNS_EXTERNAL_SRCS_DIR}/sha1-wpa/README DESTINATION licenses RENAME sha1-wpa.LICENSE.txt)
     endif()
 endif()
+
+# CPack settings
+set(CPACK_PACKAGE_NAME nalchi)
+set(CPACK_PACKAGE_VENDOR nalchi-net)
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Utilities for efficient message sending over Valve's GameNetworkingSockets")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+set(CPACK_VERBATIM_VARIABLES TRUE)
+
+if(WIN32)
+    set(CPACK_GENERATOR ZIP)
+else()
+    set(CPACK_GENERATOR TXZ)
+endif()
+
+if(USE_STEAMWORKS)
+    set(NALCHI_PACK_BACKEND steamworks)
+else()
+    set(NALCHI_PACK_BACKEND gns)
+endif()
+
+if(BUILD_SHARED_LIBS)
+    set(NALCHI_PACK_SHARED shared)
+else()
+    set(NALCHI_PACK_SHARED static)
+endif()
+
+set(CPACK_PACKAGE_FILE_NAME ${CPACK_PACKAGE_NAME}-${NALCHI_PACK_BACKEND}-${nalchi_VERSION}-${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}-${NALCHI_PACK_SHARED})
+
+include(CPack)
