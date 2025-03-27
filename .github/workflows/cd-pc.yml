@@ -50,7 +50,7 @@ jobs:
       uses: suisei-cn/actions-download-file@v1.6.0
       with:
         filename: sdk.zip
-        target: .
+        target: ${{ github.workspace }}
         url: https://partner.steamgames.com/downloads/steamworks_sdk_162.zip
 
     - name: Unzip Steamworks SDK
