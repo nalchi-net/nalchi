@@ -4,9 +4,16 @@
 
 [nalchi](https://github.com/nalchi-net/nalchi) aims to provide utilities for efficient message sending over [ValveSoftware/GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets).
 
-It supports either building with the stand-alone version of GameNetworkingSockets or Steamworks SDK version of it.
+## Features
+
+* Efficient [multicast](https://nalchi-net.github.io/nalchi/classnalchi_1_1socket__extensions.html) support with reference counted [`nalchi::shared_payload`](https://nalchi-net.github.io/nalchi/structnalchi_1_1shared__payload.html).
+* Bit-level serialization support with [`nalchi::bit_stream_writer`](https://nalchi-net.github.io/nalchi/classnalchi_1_1bit__stream__writer.html) & [`nalchi::bit_stream_reader`](https://nalchi-net.github.io/nalchi/classnalchi_1_1bit__stream__reader.html)
+
+See <https://nalchi-net.github.io/nalchi/> for the full API reference.
 
 # Build
+
+nalchi supports either building with the stand-alone version of GameNetworkingSockets or Steamworks SDK version of it.
 
 ## Build with stand-alone GameNetworkingSockets
 
