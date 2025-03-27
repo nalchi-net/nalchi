@@ -773,7 +773,7 @@ public:
 
         // Read the length of the string.
         ssize_type len = read_string_length();
-        if (len < 0 || len > max_length)
+        if (len < 0 || static_cast<size_type>(len) > max_length)
         {
             _fail = true;
             return *this;
