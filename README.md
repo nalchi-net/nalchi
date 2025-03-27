@@ -4,7 +4,7 @@
 
 <img src="https://github.com/nalchi-net/nalchi/actions/workflows/cd-pc.yml/badge.svg"> <img src="https://github.com/nalchi-net/nalchi/actions/workflows/deploy-docs.yml/badge.svg">
 
-[nalchi](https://github.com/nalchi-net/nalchi) aims to provide utilities for efficient message sending over [ValveSoftware/GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets).
+[nalchi](https://github.com/nalchi-net/nalchi) is a C++23 library that provides utilities for efficient message sending over [ValveSoftware/GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets).
 
 ## Features
 
