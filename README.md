@@ -2,6 +2,8 @@
 
 <img align="right" src="https://raw.githubusercontent.com/nalchi-net/nalchi/refs/heads/main/doc/nalchi.png" width="100px">
 
+<img src="https://github.com/nalchi-net/nalchi/actions/workflows/cd-pc.yml/badge.svg"> <img src="https://github.com/nalchi-net/nalchi/actions/workflows/deploy-docs.yml/badge.svg">
+
 [nalchi](https://github.com/nalchi-net/nalchi) aims to provide utilities for efficient message sending over [ValveSoftware/GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets).
 
 ## Features

@@ -18,3 +18,8 @@ indent_size = 4
 [{CMakeLists.txt,*.cmake}]
 indent_style = space
 indent_size = 4
+
+# GitHub Workflows
+[*.yml]
+indent_style = space
+indent_size = 2

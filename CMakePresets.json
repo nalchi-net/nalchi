@@ -2,6 +2,10 @@
     "version": 6,
     "configurePresets": [
         {
+            "name": "nalchi-cd-config",
+            "binaryDir": "build"
+        },
+        {
             "name": "nalchi-gns",
             "generator": "Ninja Multi-Config",
             "binaryDir": "build-gns"
@@ -62,6 +66,20 @@
             "cacheVariables": {
                 "BUILD_SHARED_LIBS": true
             }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "nalchi-cd-build",
+            "configurePreset": "nalchi-cd-config",
+            "configuration": "Release"
+        }
+    ],
+    "packagePresets": [
+        {
+            "name": "nalchi-cd-pack",
+            "configurePreset": "nalchi-cd-config",
+            "configurations": ["Release"]
         }
     ]
 }

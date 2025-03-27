@@ -1,0 +1,94 @@
+name: CD
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - '*'
+  pull_request:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.platform.name }} ${{ matrix.backend.name }} ${{ matrix.config.name }}
+    runs-on: ${{ matrix.platform.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+        - { name: Windows,              os: windows-latest  }
+        - { name: Linux,                os: ubuntu-latest   }
+        - { name: macOS AMD64,          os: macos-13        }
+        - { name: macOS AArch64,        os: macos-latest    }
+        backend:
+        - { name: GNS,        flags: -DUSE_STEAMWORKS=FALSE }
+        - { name: Steamworks, flags: -DUSE_STEAMWORKS=TRUE  }
+        config:
+        - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE   }
+        - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE  }
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: ${{matrix.backend.name == 'GNS'}}
+
+    - name: Cache Steamworks SDK
+      if: matrix.backend.name == 'Steamworks'
+      id: cache-steamworks-sdk
+      uses: actions/cache@v4
+      with:
+        path: sdk.zip
+        key: steamworks-sdk-162
+
+    - name: Download Steamworks SDK
+      if: matrix.backend.name == 'Steamworks' && steps.cache-steamworks-sdk.outputs.cache-hit != 'true'
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        filename: sdk.zip
+        target: .
+        url: https://partner.steamgames.com/downloads/steamworks_sdk_162.zip
+
+    - name: Unzip Steamworks SDK
+      if: matrix.backend.name == 'Steamworks'
+      shell: bash
+      run: unzip sdk.zip
+
+    - name: Install CMake
+      uses: lukka/get-cmake@latest
+
+    - name: Install Windows GNS Dependencies
+      if: matrix.backend.name == 'GNS' && runner.os == 'Windows'
+      uses: lukka/run-vcpkg@v11
+      with:
+        vcpkgDirectory: 'C:/vcpkg'
+        vcpkgGitCommitId: '300239058e33420acd153135b3f6e6b187828992'
+        vcpkgJsonGlob: 'vcpkg.json'
+        runVcpkgInstall: true
+
+    - name: Install Linux GNS Dependencies
+      if: matrix.backend.name == 'GNS' && runner.os == 'Linux'
+      run: sudo apt update -y && sudo apt install -y libprotobuf-dev protobuf-compiler
+
+    - name: Install macOS GNS Dependencies
+      if: matrix.backend.name == 'GNS' && runner.os == 'macOS'
+      shell: bash
+      run: brew install protobuf
+
+    - name: Run CMake
+      uses: lukka/run-cmake@v10
+      with:
+        configurePreset: "nalchi-cd-config"
+        configurePresetAdditionalArgs: "['${{matrix.backend.flags}}', '${{matrix.config.flags}}', '${{runner.os == 'Windows' && matrix.backend.name == 'GNS' && '-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake' || ''}}']"
+        buildPreset: "nalchi-cd-build"
+        packagePreset: "nalchi-cd-pack"
+
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: build/nalchi-*-*-*-*-*.*

@@ -1,8 +1,8 @@
 {
     "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
     "name": "nalchi",
-    "version-string": "0.0.1",
-    "description": "A lightweight wrapper around Valve's GameNetworkingSockets",
+    "version-string": "0.1.0",
+    "description": "Utilities for efficient message sending over Valve's GameNetworkingSockets",
     "homepage": "https://github.com/nalchi-net/nalchi",
     "dependencies": [
         "protobuf",
