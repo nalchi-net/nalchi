@@ -1,0 +1,8 @@
+add_executable(multicast_stress multicast_stress.cpp)
+target_link_libraries(multicast_stress PRIVATE nalchi)
+target_compile_options(multicast_stress PRIVATE ${nalchi_compile_options})
+target_link_options(multicast_stress PRIVATE ${nalchi_link_options})
+nalchi_copy_runtime_dependencies(multicast_stress)
+
+add_test(test_multicast_stress multicast_stress)
+set_tests_properties(test_multicast_stress PROPERTIES TIMEOUT 0)
