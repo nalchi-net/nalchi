@@ -75,7 +75,7 @@ private:
 private:
     friend class socket_extensions;
 
-    void add_to_message(SteamNetworkingMessage_t* msg, int logical_bytes_length);
+    NALCHI_API void add_to_message(SteamNetworkingMessage_t* msg, int logical_bytes_length);
 
     void increase_ref_count();
     void decrease_ref_count_and_deallocate_if_zero();

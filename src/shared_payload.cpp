@@ -139,7 +139,7 @@ void shared_payload::set_used_bit_stream(bool used)
         raw_field &= ~BIT_STREAM_USED_FLAG_MASK;
 }
 
-void shared_payload::add_to_message(SteamNetworkingMessage_t* msg, int logical_bytes_length)
+NALCHI_API void shared_payload::add_to_message(SteamNetworkingMessage_t* msg, int logical_bytes_length)
 {
     // If used bit stream, ceil the send size to `bit_stream_reader::word_type`.
     // Otherwise, the receiving side might read out-of-bound memory.
