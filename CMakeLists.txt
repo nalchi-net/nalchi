@@ -162,42 +162,65 @@ else() # Open source GameNetworkingSockets
 
     if (BUILD_SHARED_LIBS)
         target_link_libraries(nalchi PUBLIC GameNetworkingSockets)
+        # Required for OpenSSL dll copy hack
+        if(WIN32 AND USE_CRYPTO STREQUAL "OpenSSL")
+            find_package(OpenSSL REQUIRED)
+        endif()
     else()
         target_link_libraries(nalchi PUBLIC GameNetworkingSockets_s)
     endif()
 endif()
 
+# Copy dependencies
+function(nalchi_copy_runtime_dependencies target_name)
+    if(WIN32 AND BUILD_SHARED_LIBS)
+        add_custom_command(TARGET ${target_name} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${target_name}>
+            $<TARGET_FILE_DIR:${target_name}>
+            COMMAND_EXPAND_LISTS
+        )
+
+        # OpenSSL dll copy hack, I don't understand why `TARGET_RUNTIME_DLLS` doesn't copy it
+        if(NOT USE_STEAMWORKS AND USE_CRYPTO STREQUAL "OpenSSL")
+            if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+                set(nalchi_libcrypto_dll_path "$<TARGET_FILE_DIR:OpenSSL::Crypto>/../bin/libcrypto-3-x64.dll")
+            else()
+                set(nalchi_libcrypto_dll_path "$<TARGET_FILE_DIR:OpenSSL::Crypto>/../bin/libcrypto-3.dll")
+            endif()
+
+            add_custom_command(TARGET ${target_name} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${nalchi_libcrypto_dll_path}
+                $<TARGET_FILE_DIR:${target_name}>
+                COMMAND_EXPAND_LISTS
+            )
+        endif()
+    endif()
+    if(USE_STEAMWORKS)
+        add_custom_command(TARGET ${target_name} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            ${STEAM_API_IMPORTED_LOCATION}
+            ${LIBSDKENCRYPTEDAPPTICKET_IMPORTED_LOCATION}
+            $<TARGET_FILE_DIR:${target_name}>
+        )
+        if(WIN32)
+            add_custom_command(TARGET ${target_name} POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${STEAM_API_IMPORTED_IMPLIB}
+                ${LIBSDKENCRYPTEDAPPTICKET_IMPORTED_IMPLIB}
+                $<TARGET_FILE_DIR:${target_name}>
+            )
+        endif()
+    endif()
+endfunction()
+
+nalchi_copy_runtime_dependencies(nalchi)
+
 # tests
 if(NALCHI_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
-
-# Copy dependencies
-if(WIN32 AND BUILD_SHARED_LIBS)
-    add_custom_command(TARGET nalchi POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<$<BOOL:${BUILD_SHARED_LIBS}>:$<TARGET_RUNTIME_DLLS:nalchi>>
-        $<TARGET_FILE_DIR:nalchi>
-        COMMAND_EXPAND_LISTS
-    )
-endif()
-if(USE_STEAMWORKS)
-    add_custom_command(TARGET nalchi POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${STEAM_API_IMPORTED_LOCATION}
-        ${LIBSDKENCRYPTEDAPPTICKET_IMPORTED_LOCATION}
-        $<TARGET_FILE_DIR:nalchi>
-    )
-    if(WIN32)
-        add_custom_command(TARGET nalchi POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${STEAM_API_IMPORTED_IMPLIB}
-            ${LIBSDKENCRYPTEDAPPTICKET_IMPORTED_IMPLIB}
-            $<TARGET_FILE_DIR:nalchi>
-        )
-    endif()
-endif()
-
 
 # Install binaries
 install(TARGETS nalchi
@@ -217,6 +240,15 @@ if(BUILD_SHARED_LIBS AND WIN32)
     install(FILES $<TARGET_RUNTIME_DLLS:nalchi> TYPE BIN)
     if(MSVC)
         install(FILES $<TARGET_PDB_FILE:nalchi> TYPE BIN OPTIONAL)
+    endif()
+
+    # OpenSSL dll copy hack, I don't understand why `TARGET_RUNTIME_DLLS` doesn't copy it
+    if(NOT USE_STEAMWORKS AND USE_CRYPTO STREQUAL "OpenSSL")
+        if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+            install(FILES "$<TARGET_FILE_DIR:OpenSSL::Crypto>/../bin/libcrypto-3-x64.dll" TYPE BIN)
+        else()
+            install(FILES "$<TARGET_FILE_DIR:OpenSSL::Crypto>/../bin/libcrypto-3.dll" TYPE BIN)
+        endif()
     endif()
 endif()
 if(USE_STEAMWORKS)
