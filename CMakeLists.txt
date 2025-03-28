@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(nalchi VERSION 0.1.0)
+project(nalchi VERSION 0.1.1)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
@@ -269,7 +269,8 @@ if(USE_STEAMWORKS)
     install(FILES ${STEAM_API_HEADERS} DESTINATION include/SteamworksSDK/steam)
 endif()
 
-# Install licenses
+# Install licenses & README
+install(FILES README.md DESTINATION .)
 install(FILES LICENSE DESTINATION .)
 install(FILES LICENSE DESTINATION licenses RENAME nalchi.LICENSE.txt)
 if(NOT USE_STEAMWORKS)
