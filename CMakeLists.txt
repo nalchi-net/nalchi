@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.25)
-project(nalchi VERSION 0.1.1)
+project(nalchi VERSION 0.1.2)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 

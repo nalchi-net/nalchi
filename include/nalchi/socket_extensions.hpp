@@ -9,6 +9,7 @@
 #include <steam/isteamnetworkingutils.h>
 #include <steam/steamnetworkingtypes.h>
 
+#include <cstdint>
 #include <span>
 #include <type_traits>
 
@@ -36,9 +37,14 @@ public:
     /// flags</a> on the Steamworks docs.
     /// @param out_message_number_or_result Optional pointer to receive the message number if successful,
     /// or a negative `EResult` value if failed.
+    /// @param lane Optional lane index. See <a
+    /// href="https://partner.steamgames.com/doc/api/ISteamNetworkingSockets#ConfigureConnectionLanes"
+    /// >`ISteamNetworkingSockets::ConfigureConnectionLanes`</a> for details.
+    /// @param user_data Optional user data.
     NALCHI_API static void unicast(ISteamNetworkingSockets* sockets, HSteamNetConnection connection,
                                    nalchi::shared_payload payload, int logical_bytes_length, int send_flags,
-                                   std::int64_t* out_message_number_or_result);
+                                   std::int64_t* out_message_number_or_result, std::uint16_t lane = 0,
+                                   std::int64_t user_data = 0);
 
     /// @brief Multicasts a `shared_payload` to the connections.
     ///
@@ -55,10 +61,15 @@ public:
     /// flags</a> on the Steamworks docs.
     /// @param out_message_number_or_result Optional pointer to receive the message number if successful,
     /// or a negative `EResult` value if failed.
+    /// @param lane Optional lane index. See <a
+    /// href="https://partner.steamgames.com/doc/api/ISteamNetworkingSockets#ConfigureConnectionLanes"
+    /// >`ISteamNetworkingSockets::ConfigureConnectionLanes`</a> for details.
+    /// @param user_data Optional user data.
     template <typed_input_range<HSteamNetConnection> ConnectionRange>
     static void multicast(ISteamNetworkingSockets* sockets, ConnectionRange&& connections,
                           nalchi::shared_payload payload, int logical_bytes_length, int send_flags,
-                          std::span<std::int64_t> out_message_number_or_result)
+                          std::span<std::int64_t> out_message_number_or_result, std::uint16_t lane = 0,
+                          std::int64_t user_data = 0)
     {
         const auto connections_count = std::ranges::size(connections);
 
@@ -77,6 +88,8 @@ public:
             payload.add_to_message(messages[i], logical_bytes_length);
             messages[i]->m_conn = conn;
             messages[i]->m_nFlags = send_flags;
+            messages[i]->m_idxLane = lane;
+            messages[i]->m_nUserData = user_data;
 
             ++i;
         }
@@ -101,10 +114,15 @@ public:
     /// flags</a> on the Steamworks docs.
     /// @param out_message_number_or_result Optional pointer to receive the message number if successful,
     /// or a negative `EResult` value if failed.
+    /// @param lane Optional lane index. See <a
+    /// href="https://partner.steamgames.com/doc/api/ISteamNetworkingSockets#ConfigureConnectionLanes"
+    /// >`ISteamNetworkingSockets::ConfigureConnectionLanes`</a> for details.
+    /// @param user_data Optional user data.
     NALCHI_API static void multicast(ISteamNetworkingSockets* sockets, unsigned connections_count,
                                      const HSteamNetConnection* connections, nalchi::shared_payload payload,
                                      int logical_bytes_length, int send_flags,
-                                     std::int64_t* out_message_number_or_result);
+                                     std::int64_t* out_message_number_or_result, std::uint16_t lane = 0,
+                                     std::int64_t user_data = 0);
 };
 
 } // namespace nalchi
