@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.25)
-project(nalchi VERSION 0.1.2)
+cmake_minimum_required(VERSION 3.26)
+project(nalchi VERSION 0.1.3)
 
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
@@ -26,6 +26,10 @@ endif()
 option(NALCHI_BUILD_TESTS "Build nalchi tests" FALSE)
 option(NALCHI_ASAN "Enable AddressSanitizer for nalchi" FALSE)
 
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    option(NALCHI_POOL_MSGS "Pool `SteamNetworkingMessage_t` in uni/multicast" TRUE)
+endif()
+
 # nalchi target
 add_library(nalchi)
 target_include_directories(nalchi
@@ -39,6 +43,13 @@ INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:$<INSTALL_PREFIX>/${CMAKE_INSTALL_INCLUDEDIR}>"
 )
+
+if(CMAKE_SIZEOF_VOID_P EQUAL 8 AND NALCHI_POOL_MSGS)
+    add_subdirectory(NetBuff EXCLUDE_FROM_ALL SYSTEM)
+    target_link_libraries(nalchi PRIVATE $<BUILD_LOCAL_INTERFACE:NetBuff>)
+    target_compile_definitions(nalchi PUBLIC NALCHI_POOL_MSGS)
+endif()
+
 if(BUILD_SHARED_LIBS)
     target_compile_definitions(nalchi PRIVATE NALCHI_BUILD_EXPORT)
 else()

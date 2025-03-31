@@ -6,7 +6,6 @@
 #include "nalchi/typed_input_range.hpp"
 
 #include <steam/isteamnetworkingsockets.h>
-#include <steam/isteamnetworkingutils.h>
 #include <steam/steamnetworkingtypes.h>
 
 #include <cstdint>
@@ -81,8 +80,9 @@ public:
         std::remove_const_t<decltype(connections_count)> i = 0;
         for (const auto conn : connections)
         {
-            // TODO: Pool message instead of allocating.
-            messages[i] = SteamNetworkingUtils()->AllocateMessage(0);
+            // Pool `CSteamNetworkingMessage` instead of
+            // allocating it via `SteamNetworkingUtils()->AllocateMessage(0)`.
+            messages[i] = allocate_message();
 
             // Setup the message to send to `conn`.
             payload.add_to_message(messages[i], logical_bytes_length);
@@ -123,6 +123,18 @@ public:
                                      int logical_bytes_length, int send_flags,
                                      std::int64_t* out_message_number_or_result, std::uint16_t lane = 0,
                                      std::int64_t user_data = 0);
+
+private:
+    /// @brief Pool `CSteamNetworkingMessage` instead of allocating it
+    /// via `SteamNetworkingUtils()->AllocateMessage(0)` in 64-bit environments.
+    ///
+    /// `SteamNetworkingUtils()->AllocateMessage(0)` will
+    /// `new` & `delete` the `CSteamNetworkingMessage`, which is 264 bytes. \n
+    /// That's bad, so I provide my own pooled allocation function.
+    NALCHI_API static auto allocate_message() -> SteamNetworkingMessage_t*;
+
+    /// @brief Release `SteamNetworkingMessage_t` to the pool.
+    static void release_message(SteamNetworkingMessage_t*);
 };
 
 } // namespace nalchi

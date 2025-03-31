@@ -9,6 +9,7 @@
 ## Features
 
 * Efficient [multicast](https://nalchi-net.github.io/nalchi/classnalchi_1_1socket__extensions.html) support with reference counted [`nalchi::shared_payload`](https://nalchi-net.github.io/nalchi/structnalchi_1_1shared__payload.html).
+    * Internal `SteamNetworkingMessage_t` is pooled on 64-bit machines.
 * Bit-level serialization support with [`nalchi::bit_stream_writer`](https://nalchi-net.github.io/nalchi/classnalchi_1_1bit__stream__writer.html) & [`nalchi::bit_stream_reader`](https://nalchi-net.github.io/nalchi/classnalchi_1_1bit__stream__reader.html)
 
 See <https://nalchi-net.github.io/nalchi/> for the full API reference.
@@ -28,7 +29,7 @@ nalchi supports either building with the stand-alone version of GameNetworkingSo
 If you don't need the Steamworks SDK integration because you're building your game for platforms other than Steam,<br>
 you can build the [stand-alone GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets) which is licensed under the [BSD 3-Clause "New" or "Revised" License](https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/LICENSE).
 
-1. Recursively clone this repo to get [GameNetworkingSockets/](GameNetworkingSockets/) submodule.
+1. Recursively clone this repo to get [GameNetworkingSockets/](GameNetworkingSockets/) and [NetBuff/](NetBuff/) submodules.
 1. Prepare the dependencies of the GameNetworkingSockets.
     * Refer to the [`BUILDING.md`](https://github.com/ValveSoftware/GameNetworkingSockets/blob/master/BUILDING.md) on GameNetworkingSockets.
         * If you're using *Developer Powershell for VS 2022* on Windows, do note that it defaults to x86 environment, which obviously doesn't work when building for the AMD64.<br>
@@ -61,6 +62,7 @@ you can build the [stand-alone GameNetworkingSockets](https://github.com/ValveSo
 
 If you need to integrate with Steamworks SDK to make use of other Steamworks API functionality, you can build with Steamworks SDK.
 
+1. Recursively clone this repo to get [NetBuff/](NetBuff/) submodule.
 1. Download the Steamworks SDK from the [Steamworks partner site](https://partner.steamgames.com/).
 1. Unzip it, and copy the `public/` and `redistributable_bin/` into the [sdk/](sdk/) directory.
 1. Run `cmake --preset nalchi-steamworks` to configure.
