@@ -58,6 +58,12 @@ jobs:
       shell: bash
       run: unzip sdk.zip
 
+    - name: Switch macOS Xcode to latest stable version
+      if: runner.os == 'macOS'
+      uses: maxim-lobanov/setup-xcode@v1.6.0
+      with:
+        xcode-version: latest-stable
+
     - name: Install CMake
       uses: lukka/get-cmake@latest
 
