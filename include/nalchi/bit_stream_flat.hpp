@@ -247,6 +247,113 @@ NALCHI_FLAT_API bool nalchi_bit_stream_writer_write_utf16_string(nalchi::bit_str
 /// @return `true` if writing has been successful, otherwise `false`.
 NALCHI_FLAT_API bool nalchi_bit_stream_writer_write_utf32_string(nalchi::bit_stream_writer* self, const char32_t* str);
 
+/// @brief Constructs a `bit_stream_measurer` instance.
+NALCHI_FLAT_API nalchi::bit_stream_measurer* nalchi_bit_stream_measurer_construct();
+
+/// @brief Destroys a `bit_stream_measurer` instance.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_destroy(nalchi::bit_stream_measurer* self);
+
+/// @brief Gets the number of used (measured) bytes.
+/// @return Number of used (measured) bytes.
+NALCHI_FLAT_API auto nalchi_bit_stream_measurer_used_bytes(const nalchi::bit_stream_measurer* self)
+    -> nalchi::bit_stream_measurer::size_type;
+
+/// @brief Gets the number of used (measured) bits.
+/// @return Number of used (measured) bits.
+NALCHI_FLAT_API auto nalchi_bit_stream_measurer_used_bits(const nalchi::bit_stream_measurer* self)
+    -> nalchi::bit_stream_measurer::size_type;
+
+/// @brief Restarts the measure from zero.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_restart(nalchi::bit_stream_measurer* self);
+
+/// @brief Fake-writes some arbitrary data to the bit stream.
+/// @param data Pointer to the arbitrary data.
+/// @param size Size in bytes of the data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_bytes(nalchi::bit_stream_measurer* self, const void* data,
+                                                      nalchi::bit_stream_measurer::size_type size);
+
+/// @brief Fake-writes an bool value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_bool(nalchi::bit_stream_measurer* self, bool data);
+
+/// @brief Fake-writes a `std::int8_t` value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_s8(nalchi::bit_stream_measurer* self, std::int8_t data, std::int8_t min, std::int8_t max);
+
+/// @brief Fake-writes a `std::uint8_t` value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_u8(nalchi::bit_stream_measurer* self, std::uint8_t data, std::uint8_t min, std::uint8_t max);
+
+/// @brief Fake-writes a `std::int16_t` value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_s16(nalchi::bit_stream_measurer* self, std::int16_t data, std::int16_t min, std::int16_t max);
+
+/// @brief Fake-writes a `std::uint16_t` value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_u16(nalchi::bit_stream_measurer* self, std::uint16_t data, std::uint16_t min, std::uint16_t max);
+
+/// @brief Fake-writes a `std::int32_t` value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_s32(nalchi::bit_stream_measurer* self, std::int32_t data, std::int32_t min, std::int32_t max);
+
+/// @brief Fake-writes a `std::uint32_t` value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_u32(nalchi::bit_stream_measurer* self, std::uint32_t data, std::uint32_t min, std::uint32_t max);
+
+/// @brief Fake-writes a `std::int64_t` value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_s64(nalchi::bit_stream_measurer* self, std::int64_t data, std::int64_t min, std::int64_t max);
+
+/// @brief Fake-writes a `std::uint64_t` value to the bit stream.
+/// @param data Data to fake-write.
+/// @param min Minimum value allowed for @p data.
+/// @param max Maximum value allowed for @p data.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_u64(nalchi::bit_stream_measurer* self, std::uint64_t data, std::uint64_t min, std::uint64_t max);
+
+/// @brief Fake-writes a float value to the bit stream.
+/// @param data Data to fake-write.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_float(nalchi::bit_stream_measurer* self, float data);
+
+/// @brief Fake-writes a double value to the bit stream.
+/// @param data Data to fake-write.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_double(nalchi::bit_stream_measurer* self, double data);
+
+/// @brief Fake-writes a null-terminated ordinary string to the bit stream.
+/// @param str String to fake-write.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_ordinary_string(nalchi::bit_stream_measurer* self, const char* str);
+
+/// @brief Fake-writes a null-terminated wide string to the bit stream.
+/// @param str String to fake-write.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_wide_string(nalchi::bit_stream_measurer* self, const wchar_t* str);
+
+/// @brief Fake-writes a null-terminated UTF-8 string to the bit stream.
+/// @param str String to fake-write.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_utf8_string(nalchi::bit_stream_measurer* self, const char8_t* str);
+
+/// @brief Fake-writes a null-terminated UTF-16 string to the bit stream.
+/// @param str String to fake-write.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_utf16_string(nalchi::bit_stream_measurer* self, const char16_t* str);
+
+/// @brief Fake-writes a null-terminated UTF-32 string to the bit stream.
+/// @param str String to fake-write.
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_utf32_string(nalchi::bit_stream_measurer* self, const char32_t* str);
+
 /// @brief Constructs a `bit_stream_reader` instance without a buffer.
 ///
 /// This constructor can be useful if you want to set the buffer afterwards. \n

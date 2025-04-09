@@ -42,7 +42,8 @@ NALCHI_API bit_stream_writer::bit_stream_writer(word_type* begin, word_type* end
     reset_with(begin, end, logical_bytes_length);
 }
 
-NALCHI_API bit_stream_writer::bit_stream_writer(word_type* begin, size_type words_length, size_type logical_bytes_length)
+NALCHI_API bit_stream_writer::bit_stream_writer(word_type* begin, size_type words_length,
+                                                size_type logical_bytes_length)
 {
     reset_with(begin, words_length, logical_bytes_length);
 }
@@ -179,6 +180,11 @@ NALCHI_API void bit_stream_writer::do_flush_word_unchecked()
     _scratch_index = std::max(0, _scratch_index - static_cast<int>(8 * sizeof(word_type)));
 }
 
+NALCHI_API auto bit_stream_measurer::used_bytes() const -> size_type
+{
+    return ceil_to_multiple_of<8>(used_bits()) / 8;
+}
+
 NALCHI_API bit_stream_reader::bit_stream_reader()
 {
     reset();
@@ -189,12 +195,14 @@ NALCHI_API bit_stream_reader::bit_stream_reader(std::span<const word_type> buffe
     reset_with(buffer, logical_bytes_length);
 }
 
-NALCHI_API bit_stream_reader::bit_stream_reader(const word_type* begin, const word_type* end, size_type logical_bytes_length)
+NALCHI_API bit_stream_reader::bit_stream_reader(const word_type* begin, const word_type* end,
+                                                size_type logical_bytes_length)
 {
     reset_with(begin, end, logical_bytes_length);
 }
 
-NALCHI_API bit_stream_reader::bit_stream_reader(const word_type* begin, size_type words_length, size_type logical_bytes_length)
+NALCHI_API bit_stream_reader::bit_stream_reader(const word_type* begin, size_type words_length,
+                                                size_type logical_bytes_length)
 {
     reset_with(begin, words_length, logical_bytes_length);
 }
@@ -233,12 +241,14 @@ NALCHI_API void bit_stream_reader::reset_with(std::span<const word_type> buffer,
     restart();
 }
 
-NALCHI_API void bit_stream_reader::reset_with(const word_type* begin, const word_type* end, size_type logical_bytes_length)
+NALCHI_API void bit_stream_reader::reset_with(const word_type* begin, const word_type* end,
+                                              size_type logical_bytes_length)
 {
     reset_with(std::span<const word_type>(begin, end), logical_bytes_length);
 }
 
-NALCHI_API void bit_stream_reader::reset_with(const word_type* begin, size_type words_length, size_type logical_bytes_length)
+NALCHI_API void bit_stream_reader::reset_with(const word_type* begin, size_type words_length,
+                                              size_type logical_bytes_length)
 {
     reset_with(std::span<const word_type>(begin, words_length), logical_bytes_length);
 }

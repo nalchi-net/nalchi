@@ -32,6 +32,15 @@
     NALCHI_TESTS_ASSERT(condition, "seed = ", seed, ", size = ", logical_bytes_length, \
                         '\n' __VA_OPT__(, '\t', ) __VA_ARGS__, __VA_OPT__('\n', ) get_inputs_oss().rdbuf())
 
+#define BS_ASSERT_WRITER_MEASURER_SIZE_MATCH \
+    do \
+    { \
+        BS_ASSERT(writer.used_bits() == measurer.used_bits(), "writer logical used bits = ", writer.used_bits(), \
+                  " mismatch with measurer = ", measurer.used_bits()); \
+        BS_ASSERT(writer.used_bytes() == measurer.used_bytes(), "writer logical used bytes = ", writer.used_bytes(), \
+                  " mismatch with measurer = ", measurer.used_bytes()); \
+    } while (false)
+
 #define BS_ASSERT_WRITER_INVARIANTS \
     do \
     { \
@@ -112,6 +121,7 @@
 \
         /* Write results */ \
         writer.write(input.value, input.min, input.max); \
+        measurer.write(input.value, input.min, input.max); \
         g_inputs.push_back(input); \
     } while (false)
 
@@ -130,6 +140,7 @@
 \
         /* Write results */ \
         writer.write(value); \
+        measurer.write(value); \
         g_inputs.push_back(value); \
     } while (false)
 
@@ -146,6 +157,7 @@
 \
         /* Write results */ \
         writer.write(value); \
+        measurer.write(value); \
         g_inputs.push_back(value); \
     } while (false)
 
@@ -172,6 +184,7 @@
 \
         /* Write results */ \
         writer.write(value); \
+        measurer.write(value); \
         g_inputs.push_back(value); \
     } while (false)
 
@@ -336,12 +349,14 @@ auto get_inputs_oss() -> std::ostringstream
 /// @param seed Internal seed to run the rng.
 /// @param logical_bytes_length Number of bytes the bit stream will use.
 void test_write_and_read(const seed_type seed, const size_type logical_bytes_length, bit_stream_writer& writer,
-                         bit_stream_reader& reader)
+                         bit_stream_reader& reader, bit_stream_measurer& measurer)
 {
     g_inputs.clear();
 
     writer.reset_with(g_buffer, logical_bytes_length);
+    measurer.restart();
     BS_ASSERT_WRITER_INVARIANTS;
+    BS_ASSERT_WRITER_MEASURER_SIZE_MATCH;
 
     rng_type rng(seed);
 
@@ -407,6 +422,7 @@ void test_write_and_read(const seed_type seed, const size_type logical_bytes_len
 
             // Write results
             writer.write(&value, static_cast<size_type>(sizeof(user_data)));
+            measurer.write(&value, static_cast<size_type>(sizeof(user_data)));
             g_inputs.push_back(value);
             break;
         }
@@ -419,6 +435,7 @@ void test_write_and_read(const seed_type seed, const size_type logical_bytes_len
 
             // Write results
             writer.write(value);
+            measurer.write(value);
             g_inputs.push_back(value);
             break;
         }
@@ -501,6 +518,7 @@ void test_write_and_read(const seed_type seed, const size_type logical_bytes_len
         else
         {
             BS_ASSERT_WRITER_INVARIANTS;
+            BS_ASSERT_WRITER_MEASURER_SIZE_MATCH;
         }
     }
 
@@ -606,6 +624,7 @@ int main(int argc, char** argv)
     std::cout << "=== bit_stream stress test ===\n";
 
     bit_stream_writer writer;
+    bit_stream_measurer measurer;
     bit_stream_reader reader;
 
     if (argc == 1 + 2)
@@ -621,7 +640,7 @@ int main(int argc, char** argv)
 
         std::cout << "Starting with seed = " << seed << ", size = " << logical_bytes_length << " ...\n";
 
-        test_write_and_read(seed, logical_bytes_length, writer, reader);
+        test_write_and_read(seed, logical_bytes_length, writer, reader, measurer);
     }
     else
     {
@@ -645,14 +664,14 @@ int main(int argc, char** argv)
 
         for (std::size_t i = 0; i < iterations; ++i)
         {
-            test_write_and_read(rng(), tiny(rng), writer, reader);
-            test_write_and_read(rng(), small(rng), writer, reader);
-            test_write_and_read(rng(), medium(rng), writer, reader);
-            test_write_and_read(rng(), large(rng), writer, reader);
-            test_write_and_read(rng(), extra(rng), writer, reader);
-            test_write_and_read(rng(), extreme(rng), writer, reader);
-            test_write_and_read(rng(), mtu(rng), writer, reader);
-            test_write_and_read(rng(), fragmented(rng), writer, reader);
+            test_write_and_read(rng(), tiny(rng), writer, reader, measurer);
+            test_write_and_read(rng(), small(rng), writer, reader, measurer);
+            test_write_and_read(rng(), medium(rng), writer, reader, measurer);
+            test_write_and_read(rng(), large(rng), writer, reader, measurer);
+            test_write_and_read(rng(), extra(rng), writer, reader, measurer);
+            test_write_and_read(rng(), extreme(rng), writer, reader, measurer);
+            test_write_and_read(rng(), mtu(rng), writer, reader, measurer);
+            test_write_and_read(rng(), fragmented(rng), writer, reader, measurer);
         }
     }
 

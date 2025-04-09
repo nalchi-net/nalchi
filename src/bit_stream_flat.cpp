@@ -211,6 +211,130 @@ NALCHI_FLAT_API bool nalchi_bit_stream_writer_write_utf32_string(nalchi::bit_str
     return self->write(str);
 }
 
+NALCHI_FLAT_API nalchi::bit_stream_measurer* nalchi_bit_stream_measurer_construct()
+{
+    return new nalchi::bit_stream_measurer;
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_destroy(nalchi::bit_stream_measurer* self)
+{
+    delete self;
+}
+
+NALCHI_FLAT_API auto nalchi_bit_stream_measurer_used_bytes(const nalchi::bit_stream_measurer* self)
+    -> nalchi::bit_stream_measurer::size_type
+{
+    return self->used_bytes();
+}
+
+NALCHI_FLAT_API auto nalchi_bit_stream_measurer_used_bits(const nalchi::bit_stream_measurer* self)
+    -> nalchi::bit_stream_measurer::size_type
+{
+    return self->used_bits();
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_restart(nalchi::bit_stream_measurer* self)
+{
+    self->restart();
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_bytes(nalchi::bit_stream_measurer* self, const void* data,
+                                                            nalchi::bit_stream_measurer::size_type size)
+{
+    self->write(data, size);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_bool(nalchi::bit_stream_measurer* self, bool data)
+{
+    self->write(data);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_s8(nalchi::bit_stream_measurer* self, std::int8_t data,
+                                                         std::int8_t min, std::int8_t max)
+{
+    self->write(data, min, max);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_u8(nalchi::bit_stream_measurer* self, std::uint8_t data,
+                                                         std::uint8_t min, std::uint8_t max)
+{
+    self->write(data, min, max);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_s16(nalchi::bit_stream_measurer* self, std::int16_t data,
+                                                          std::int16_t min, std::int16_t max)
+{
+    self->write(data, min, max);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_u16(nalchi::bit_stream_measurer* self, std::uint16_t data,
+                                                          std::uint16_t min, std::uint16_t max)
+{
+    self->write(data, min, max);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_s32(nalchi::bit_stream_measurer* self, std::int32_t data,
+                                                          std::int32_t min, std::int32_t max)
+{
+    self->write(data, min, max);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_u32(nalchi::bit_stream_measurer* self, std::uint32_t data,
+                                                          std::uint32_t min, std::uint32_t max)
+{
+    self->write(data, min, max);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_s64(nalchi::bit_stream_measurer* self, std::int64_t data,
+                                                          std::int64_t min, std::int64_t max)
+{
+    self->write(data, min, max);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_u64(nalchi::bit_stream_measurer* self, std::uint64_t data,
+                                                          std::uint64_t min, std::uint64_t max)
+{
+    self->write(data, min, max);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_float(nalchi::bit_stream_measurer* self, float data)
+{
+    self->write(data);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_double(nalchi::bit_stream_measurer* self, double data)
+{
+    self->write(data);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_ordinary_string(nalchi::bit_stream_measurer* self,
+                                                                      const char* str)
+{
+    self->write(str);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_wide_string(nalchi::bit_stream_measurer* self, const wchar_t* str)
+{
+    self->write(str);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_utf8_string(nalchi::bit_stream_measurer* self, const char8_t* str)
+{
+    self->write(str);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_utf16_string(nalchi::bit_stream_measurer* self,
+                                                                   const char16_t* str)
+{
+    self->write(str);
+}
+
+NALCHI_FLAT_API void nalchi_bit_stream_measurer_write_utf32_string(nalchi::bit_stream_measurer* self,
+                                                                   const char32_t* str)
+{
+    self->write(str);
+}
+
 NALCHI_FLAT_API nalchi::bit_stream_reader* nalchi_bit_stream_reader_construct_default()
 {
     return new nalchi::bit_stream_reader;

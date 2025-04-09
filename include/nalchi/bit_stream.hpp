@@ -546,6 +546,159 @@ private:
     NALCHI_API void do_flush_word_unchecked();
 };
 
+/// @brief Measures the bytes `bit_stream_writer` will use.
+///
+/// This never actually writes any data. \n
+/// Instead, it only measures how many bytes `bit_stream_writer` would use. \n
+/// You can use this to measure the required space for the `bit_stream_writer`.
+class bit_stream_measurer final
+{
+public:
+    using size_type = bit_stream_writer::size_type; ///< Size type representing number of bits and bytes.
+
+private:
+    size_type _logical_used_bits = 0;
+
+public:
+    /// @brief Deleted copy constructor.
+    bit_stream_measurer(const bit_stream_measurer&) = delete;
+
+    /// @brief Deleted copy assignment operator.
+    auto operator=(const bit_stream_measurer&) -> bit_stream_measurer& = delete;
+
+    /// @brief Constructs a `bit_stream_measurer` instance.
+    NALCHI_API bit_stream_measurer() = default;
+
+public:
+    /// @brief Gets the number of used (measured) bytes.
+    /// @return Number of used (measured) bytes.
+    NALCHI_API auto used_bytes() const -> size_type;
+
+    /// @brief Gets the number of used (measured) bits.
+    /// @return Number of used (measured) bits.
+    NALCHI_API auto used_bits() const -> size_type
+    {
+        return _logical_used_bits;
+    }
+
+public:
+    /// @brief Restarts the measure from zero.
+    NALCHI_API void restart()
+    {
+        _logical_used_bits = 0;
+    }
+
+public:
+    /// @brief Fake-writes some arbitrary data to the bit stream.
+    /// @param data Pointer to the arbitrary data.
+    /// @param size Size in bytes of the data.
+    /// @return The stream itself.
+    NALCHI_API auto write([[maybe_unused]] const void* data, size_type size) -> bit_stream_measurer&
+    {
+        _logical_used_bits += 8 * size;
+        return *this;
+    }
+
+    /// @brief Fake-writes an integral value to the bit stream.
+    /// @tparam Int Integer type.
+    /// @param data Data to fake-write.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <std::integral Int>
+    auto write([[maybe_unused]] Int data, Int min = std::numeric_limits<Int>::min(),
+               Int max = std::numeric_limits<Int>::max()) -> bit_stream_measurer&
+    {
+        using UInt = make_unsigned_allow_bool_t<Int>;
+
+        // Convert `data` to `value`.
+        const int bits = std::bit_width(static_cast<UInt>(((UInt)max) - ((UInt)min)));
+
+        // Adjust used bits
+        _logical_used_bits += static_cast<size_type>(bits);
+
+        return *this;
+    }
+
+    /// @brief Fake-writes a float value to the bit stream.
+    /// @param data Data to fake-write.
+    /// @return The stream itself.
+    NALCHI_API auto write(float data) -> bit_stream_measurer&
+    {
+        _logical_used_bits += static_cast<size_type>(8 * sizeof(data));
+        return *this;
+    }
+
+    /// @brief Fake-writes a double value to the bit stream.
+    /// @param data Data to fake-write.
+    /// @return The stream itself.
+    NALCHI_API auto write(double data) -> bit_stream_measurer&
+    {
+        _logical_used_bits += static_cast<size_type>(8 * sizeof(data));
+        return *this;
+    }
+
+    /// @brief Fake-writes a string view to the bit stream.
+    /// @tparam CharT Underlying character type of `std::basic_string_view`.
+    /// @tparam CharTraits Char traits for `CharT`.
+    /// @param str String to fake-write.
+    /// @return The stream itself.
+    template <character CharT, typename CharTraits>
+    auto write(std::basic_string_view<CharT, CharTraits> str) -> bit_stream_measurer&
+    {
+        // Fake-write a prefix of length prefix.
+        _logical_used_bits += bit_stream_writer::STR_LEN_PREFIX_PREFIX_BITS;
+
+        // Get the length of the string.
+        const auto len = str.length();
+
+        // Fake-write a length prefix.
+        if (len <= std::numeric_limits<std::uint8_t>::max())
+        {
+            _logical_used_bits += (8 * sizeof(std::uint8_t));
+        }
+        else if (len <= std::numeric_limits<std::uint16_t>::max())
+        {
+            _logical_used_bits += (8 * sizeof(std::uint16_t));
+        }
+        else if (len <= std::numeric_limits<std::uint32_t>::max())
+        {
+            _logical_used_bits += (8 * sizeof(std::uint32_t));
+        }
+        else // len <= std::numeric_limits<std::uint64_t>::max()
+        {
+            _logical_used_bits += (8 * sizeof(std::uint64_t));
+        }
+
+        // Fake-write the string payload.
+        _logical_used_bits += static_cast<size_type>(8 * len * sizeof(CharT));
+
+        return *this;
+    }
+
+    /// @brief Fake-writes a string to the bit stream.
+    /// @tparam CharT Underlying character type of `std::basic_string`.
+    /// @tparam CharTraits Char traits for `CharT`.
+    /// @tparam Allocator Underlying allocator for `std::basic_string`.
+    /// @param str String to fake-write.
+    /// @return The stream itself.
+    template <character CharT, typename CharTraits, typename Allocator>
+    auto write(const std::basic_string<CharT, CharTraits, Allocator>& str) -> bit_stream_measurer&
+    {
+        return write(std::basic_string_view<CharT, CharTraits>(str));
+    }
+
+    /// @brief Fake-writes a null-terminated string to the bit stream.
+    /// @tparam CharT Character type of the null-terminated string.
+    /// @param str String to fake-write.
+    /// @return The stream itself.
+    template <character CharT>
+    auto write(const CharT* str) -> bit_stream_measurer&
+    {
+        return write(std::basic_string_view<CharT>(str));
+    }
+};
+
 /// @brief Helper stream to read bits from your buffer.
 ///
 /// Its design is based on the articles by Glenn Fiedler, see:
