@@ -73,6 +73,14 @@ public:
     {
         const auto connections_count = std::ranges::size(connections);
 
+        // If no connections to send,
+        if (0 == connections_count)
+        {
+            // Force deallocate the payload, and return without sending.
+            shared_payload::force_deallocate(payload);
+            return;
+        }
+
         // No dynamic allocation vs. Stack overflow safety.
         // I chose the former, because I think it's not common to multicast to more than 10k connections at once.
         auto** messages = static_cast<SteamNetworkingMessage_t**>(
