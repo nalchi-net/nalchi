@@ -30,6 +30,9 @@ jobs:
         config:
         - { name: Shared, flags: -DBUILD_SHARED_LIBS=TRUE   }
         - { name: Static, flags: -DBUILD_SHARED_LIBS=FALSE  }
+        exclude:
+        - platform: { os: macos-13 }
+          backend: { name: Steamworks }
 
     steps:
     - name: Checkout
