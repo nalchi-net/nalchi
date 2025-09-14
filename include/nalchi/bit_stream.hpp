@@ -336,6 +336,23 @@ public:
         return do_write<true>(data, min, max);
     }
 
+    /// @brief Writes an enum value to the bit stream.
+    /// @tparam Enum Enum type.
+    /// @param data Data to write.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <typename Enum>
+        requires std::is_enum_v<Enum>
+    auto write(Enum data, Enum min = static_cast<Enum>(std::numeric_limits<std::underlying_type_t<Enum>>::min()),
+               Enum max = static_cast<Enum>(std::numeric_limits<std::underlying_type_t<Enum>>::max()))
+        -> bit_stream_writer&
+    {
+        return do_write<true>(static_cast<std::underlying_type_t<Enum>>(data),
+                              static_cast<std::underlying_type_t<Enum>>(min),
+                              static_cast<std::underlying_type_t<Enum>>(max));
+    }
+
     /// @brief Writes a float value to the bit stream.
     /// @param data Data to write.
     /// @return The stream itself.
@@ -620,6 +637,22 @@ public:
         return *this;
     }
 
+    /// @brief Fake-writes an enum value to the bit stream.
+    /// @tparam Enum Enum type.
+    /// @param data Data to fake-write.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <typename Enum>
+        requires std::is_enum_v<Enum>
+    auto write(Enum data, Enum min = static_cast<Enum>(std::numeric_limits<std::underlying_type_t<Enum>>::min()),
+               Enum max = static_cast<Enum>(std::numeric_limits<std::underlying_type_t<Enum>>::max()))
+        -> bit_stream_measurer&
+    {
+        return write(static_cast<std::underlying_type_t<Enum>>(data), static_cast<std::underlying_type_t<Enum>>(min),
+                     static_cast<std::underlying_type_t<Enum>>(max));
+    }
+
     /// @brief Fake-writes a float value to the bit stream.
     /// @param data Data to fake-write.
     /// @return The stream itself.
@@ -896,6 +929,27 @@ public:
         -> bit_stream_reader&
     {
         return do_read<true>(data, min, max);
+    }
+
+    /// @brief Reads an enum value from the bit stream.
+    /// @tparam Enum Enum type.
+    /// @param data Data to read to.
+    /// @param min Minimum value allowed for @p data.
+    /// @param max Maximum value allowed for @p data.
+    /// @return The stream itself.
+    template <typename Enum>
+        requires std::is_enum_v<Enum>
+    auto read(Enum& data, Enum min = static_cast<Enum>(std::numeric_limits<std::underlying_type_t<Enum>>::min()),
+              Enum max = static_cast<Enum>(std::numeric_limits<std::underlying_type_t<Enum>>::max()))
+        -> bit_stream_reader&
+    {
+        std::underlying_type_t<Enum> num;
+
+        if (do_read<true>(num, static_cast<std::underlying_type_t<Enum>>(min),
+                          static_cast<std::underlying_type_t<Enum>>(max)))
+            data = static_cast<Enum>(num);
+
+        return *this;
     }
 
     /// @brief Reads a float value from the bit stream.

@@ -2,6 +2,7 @@
 
 #include <bit>
 #include <concepts>
+#include <cstddef>
 
 namespace nalchi
 {
